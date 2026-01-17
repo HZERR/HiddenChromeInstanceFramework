@@ -2,30 +2,30 @@ package ru.hzerr;
 
 import ru.hzerr.ex.ChromeLaunchException;
 import ru.hzerr.ex.ChromeShutdownException;
-import ru.hzerr.parameters.ChromeInstanceParameters;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class ChromeInstance implements IChrome {
+public abstract class ChromeInstance implements IChrome {
 
     protected static final String CHROME_DEVTOOLS_PROTOCOL_SPECIFICATION = "http://localhost:%s/json/protocol";
     protected static final String CHROME_DEVTOOLS_VERSION = "http://localhost:%s/json/version";
 
     private Process chromeInstanceProcess;
-    protected ChromeInstanceParameters<?> chromeInstanceParameters;
 
-    public ChromeInstance(ChromeInstanceParameters<?> chromeInstanceParameters) {
-        this.chromeInstanceParameters = chromeInstanceParameters;
+    public ChromeInstance() {
     }
 
     @Override
     public void launch() throws ChromeLaunchException {
         try {
-            chromeInstanceProcess = new ProcessBuilder(chromeInstanceParameters.getCommands()).start();
+            chromeInstanceProcess = new ProcessBuilder(getCommands()).start();
         } catch (Exception e) {
             throw new ChromeLaunchException("Failed to launch chrome at: ", e);
         }
     }
+
+    protected abstract List<String> getCommands();
 
     @Override
     public void close() throws ChromeShutdownException {

@@ -1,14 +1,19 @@
 package ru.hzerr.parameters;
 
+import ru.hzerr.ex.ChromeMissingParametersException;
+import ru.hzerr.utils.StringUtils;
+
+import java.util.ArrayList;
 import java.util.List;
 
-public class HiddenChromeV144InstanceParameters extends ChromeInstanceParameters<HiddenChromeV144InstanceParameters> {
+public class HiddenChromeV144InstanceParameters extends ChromeInstanceParameters {
 
     private String userDataLocation;
     private String remoteDebuggingPort;
     private boolean noFirstRun;
 
-    public HiddenChromeV144InstanceParameters() {
+    private HiddenChromeV144InstanceParameters(String chromeInstanceLocation) {
+        super(chromeInstanceLocation);
     }
 
     public String getUserDataLocation() {
@@ -35,18 +40,21 @@ public class HiddenChromeV144InstanceParameters extends ChromeInstanceParameters
     }
 
     @Override
-    public List<String> getCommands() {
-        List<String> commands = super.getCommands();
-        if (remoteDebuggingPort != null)
-            commands.add("--remote-debugging-port=" + remoteDebuggingPort);
-        if (userDataLocation != null)
-            commands.add("--user-data-dir=\"%s\"".formatted(userDataLocation));
+    protected List<String> getArguments() {
+        List<String> args = new ArrayList<>();
+        if (StringUtils.isEmpty(remoteDebuggingPort)) throw new ChromeMissingParametersException("Chrome parameter 'remoteDebuggingPort' isn't provided");
+        if (StringUtils.isEmpty(userDataLocation)) throw new ChromeMissingParametersException("Chrome parameter 'userDataLocation' isn't provided");
+
+        args.add("--remote-debugging-port=" + remoteDebuggingPort);
+        args.add("--user-data-dir=\"%s\"".formatted(userDataLocation));
+
         if (noFirstRun)
-            commands.add("--no-first-run");
-        return commands;
+            args.add("--no-first-run");
+
+        return args;
     }
 
-    public static HiddenChromeV144InstanceParameters create() {
-        return new HiddenChromeV144InstanceParameters();
+    public static HiddenChromeV144InstanceParameters create(String chromeInstanceLocation) {
+        return new HiddenChromeV144InstanceParameters(chromeInstanceLocation);
     }
 }

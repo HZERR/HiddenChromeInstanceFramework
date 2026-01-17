@@ -5,6 +5,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.hzerr.model.ChromeDevToolsMetaData;
 import ru.hzerr.parameters.HiddenChromeV144InstanceParameters;
 
 import java.io.IOException;
@@ -19,8 +20,7 @@ public class HiddenOfficialChromeTest {
     @BeforeEach
     public void initialize() throws Exception {
         this.userDataLocation = Files.createTempDirectory("hidden-chrome");
-        HiddenChromeV144InstanceParameters parameters = HiddenChromeV144InstanceParameters.create()
-                .withChromeLocation("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe")
+        HiddenChromeV144InstanceParameters parameters = HiddenChromeV144InstanceParameters.create("C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe")
                 .withRemoteDebuggingPort("6374")
                 .withUserDataLocation(userDataLocation.toString())
                 .withNoFirstRun(true);
@@ -29,10 +29,10 @@ public class HiddenOfficialChromeTest {
     }
 
     @Test
-    public void getDevToolsVersionTest() {
+    public void getDevToolsMetaDataTest() {
         Assertions.assertDoesNotThrow(() -> chromeInstance.launch());
-        String arguments = Assertions.assertDoesNotThrow(() -> chromeInstance.getDevToolsVersion());
-        System.out.printf("DevTools: %s%n", arguments);
+        ChromeDevToolsMetaData chromeDevToolsMetaData = Assertions.assertDoesNotThrow(() -> chromeInstance.getDevToolsMetaData());
+        System.out.println(chromeDevToolsMetaData);
     }
 
     @AfterEach
