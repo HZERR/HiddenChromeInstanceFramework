@@ -20,7 +20,7 @@ public class HiddenChromeV144InstanceParameters extends ChromeInstanceParameters
         return userDataLocation;
     }
 
-    public HiddenChromeV144InstanceParameters withUserDataLocation(String userDataLocation) {
+    private HiddenChromeV144InstanceParameters withUserDataLocation(String userDataLocation) {
         this.userDataLocation = userDataLocation;
         return this;
     }
@@ -29,12 +29,16 @@ public class HiddenChromeV144InstanceParameters extends ChromeInstanceParameters
         return remoteDebuggingPort;
     }
 
-    public HiddenChromeV144InstanceParameters withRemoteDebuggingPort(String remoteDebuggingPort) {
+    private HiddenChromeV144InstanceParameters withRemoteDebuggingPort(String remoteDebuggingPort) {
         this.remoteDebuggingPort = remoteDebuggingPort;
         return this;
     }
 
-    public HiddenChromeV144InstanceParameters withNoFirstRun(boolean noFirstRun) {
+    public boolean isNoFirstRun() {
+        return noFirstRun;
+    }
+
+    private HiddenChromeV144InstanceParameters withNoFirstRun(boolean noFirstRun) {
         this.noFirstRun = noFirstRun;
         return this;
     }
@@ -54,7 +58,50 @@ public class HiddenChromeV144InstanceParameters extends ChromeInstanceParameters
         return args;
     }
 
-    public static HiddenChromeV144InstanceParameters create(String chromeInstanceLocation) {
-        return new HiddenChromeV144InstanceParameters(chromeInstanceLocation);
+    public static class HiddenChromeV144InstanceParametersBuilder implements IChromeInstanceParametersBuilder<HiddenChromeV144InstanceParameters> {
+
+        private String chromeInstanceLocation;
+        private String userDataLocation;
+        private String remoteDebuggingPort;
+        private boolean noFirstRun;
+
+        private HiddenChromeV144InstanceParametersBuilder() {
+        }
+
+        public HiddenChromeV144InstanceParametersBuilder withChromeInstanceLocation(String chromeInstanceLocation) {
+            this.chromeInstanceLocation = chromeInstanceLocation;
+            return this;
+        }
+
+        public HiddenChromeV144InstanceParametersBuilder withUserDataLocation(String userDataLocation) {
+            this.userDataLocation = userDataLocation;
+            return this;
+        }
+
+        public HiddenChromeV144InstanceParametersBuilder withRemoteDebuggingPort(String remoteDebuggingPort) {
+            this.remoteDebuggingPort = remoteDebuggingPort;
+            return this;
+        }
+
+        public HiddenChromeV144InstanceParametersBuilder withNoFirstRun(boolean noFirstRun) {
+            this.noFirstRun = noFirstRun;
+            return this;
+        }
+
+        @Override
+        public HiddenChromeV144InstanceParameters build() {
+            if (StringUtils.isEmpty(chromeInstanceLocation)) throw new ChromeMissingParametersException("Chrome parameter 'chromeInstanceLocation' isn't provided");
+            if (StringUtils.isEmpty(remoteDebuggingPort)) throw new ChromeMissingParametersException("Chrome parameter 'remoteDebuggingPort' isn't provided");
+            if (StringUtils.isEmpty(userDataLocation)) throw new ChromeMissingParametersException("Chrome parameter 'userDataLocation' isn't provided");
+
+            return new HiddenChromeV144InstanceParameters(chromeInstanceLocation)
+                    .withRemoteDebuggingPort(remoteDebuggingPort)
+                    .withUserDataLocation(userDataLocation)
+                    .withNoFirstRun(noFirstRun);
+        }
+
+        public static HiddenChromeV144InstanceParametersBuilder create() {
+            return new HiddenChromeV144InstanceParametersBuilder();
+        }
     }
 }
