@@ -8,15 +8,29 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.hzerr.chrome.HiddenChromeInstance;
 import ru.hzerr.model.ChromeDevToolsMetaData;
+import ru.hzerr.model.GoogleReCaptchaV3ScoreMetaData;
+import ru.hzerr.model.base.BaseChromeCommandResponse;
+import ru.hzerr.model.base.BaseChromeEvent;
 import ru.hzerr.parameters.HiddenChromeV144InstanceParameters;
 import ru.hzerr.parameters.HiddenChromeV144InstanceParameters.HiddenChromeV144InstanceParametersBuilder;
+import ru.hzerr.utils.JsonUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
+// https://fingerprint-scan.com
+// https://pixelscan.net/fingerprint-check
+// https://bot.sannysoft.com
+// https://nopecha.com/demo/cloudflare
+// https://www.browserscan.net
+// https://bot-detector.rebrowser.net
+// https://rucaptcha.com/demo/recaptcha-v3
 public class HiddenOfficialChromeTest {
 
     private static final String CHROME_INSTANCE_LOCATION = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";// <<< CHANGE IT IF NEEDED
@@ -43,7 +57,7 @@ public class HiddenOfficialChromeTest {
     }
 
     @Test
-    public void getDevToolsMetaDataTest() {
+    public void getDevToolsMetaDataTest() throws InterruptedException {
         ChromeDevToolsMetaData chromeDevToolsMetaData = Assertions.assertDoesNotThrow(() -> chromeInstance.getDevToolsMetaData(), "❌ Failed to retrieve Chrome DevTools metadata");
         System.out.printf("✅ Chrome DevTools data has been successfully retrieved! Please check: %s%n", chromeDevToolsMetaData);
     }
@@ -53,6 +67,280 @@ public class HiddenOfficialChromeTest {
         String chromeDevToolsSpecification = Assertions.assertDoesNotThrow(() -> chromeInstance.getDevToolsSpecification(), "❌ Failed to retrieve Chrome DevTools specification");
         Assertions.assertDoesNotThrow(() -> FileUtils.writeStringToFile(new File(CHROME_DEV_TOOLS_SPECIFICATION_LOCATION), chromeDevToolsSpecification, StandardCharsets.UTF_8), "❌ Failed to save Chrome DevTools specification to file");
         System.out.printf("✅ Chrome DevTools specification has been successfully saved! Please look at '%s'%n", CHROME_DEV_TOOLS_SPECIFICATION_LOCATION);
+    }
+
+    @Test
+    public void bypassRecaptchaV3Test() throws InterruptedException {
+        Assertions.assertDoesNotThrow(() -> chromeInstance.connect());
+        chromeInstance.invokeMethod("""
+                    {
+                      "id": 0,
+                      "method": "Network.setExtraHTTPHeaders",
+                      "params": {
+                        "headers": {
+                          "Referer": "https://www.google.com/"
+                        }
+                      }
+                    }
+                """);
+
+        waitForResponse(0);
+        chromeInstance.invokeMethod("""
+                {
+                  "id": 1,
+                  "method": "Target.createTarget",
+                  "params": {
+                    "url": "https://rucaptcha.com/demo/recaptcha-v3",
+                    "newWindow": false
+                  }
+                }
+                """);
+        BaseChromeCommandResponse openNewWindowResponse = null;
+        while ((openNewWindowResponse = chromeInstance.getDevToolsResponse(1)) == null) {
+            Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
+        }
+        System.out.printf("✅ Target.createTarget: %s%n", openNewWindowResponse);
+
+        chromeInstance.invokeMethod("""
+                {
+                  "id": 2,
+                  "method": "Target.attachToTarget",
+                  "params": {
+                    "targetId": "%s",
+                    "flatten": true
+                  }
+                }
+                """.formatted(openNewWindowResponse.getResult().get("targetId").asString()));
+
+        BaseChromeCommandResponse attachToNewWindowResponse = null;
+        while ((attachToNewWindowResponse = chromeInstance.getDevToolsResponse(2)) == null) {
+            Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
+        }
+        System.out.printf("✅ Target.attachToTarget: %s%n", attachToNewWindowResponse);
+
+        chromeInstance.invokeMethod("""
+                {
+                  "id": 777,
+                  "sessionId": "%s",
+                  "method": "Page.enable"
+                }
+                """.formatted(attachToNewWindowResponse.getResult().get("sessionId").asString()));
+        waitForResponse(777);
+
+        List<BaseChromeEvent> events = chromeInstance.getDevToolsEvents("Page.frameRequestedNavigation");
+        while (events == null || events.stream().filter(chromeEvent -> chromeEvent.getPayload().has("url") && chromeEvent.getPayload().get("url").asString().startsWith("https://www.google.com/recaptcha/api2/anchor?")).findFirst().isEmpty()) {
+            Thread.sleep(100);
+            events = chromeInstance.getDevToolsEvents("Page.frameRequestedNavigation");
+        }
+
+        String frameId = events.stream().filter(chromeEvent -> chromeEvent.getPayload().has("url") && chromeEvent.getPayload().get("url").asString().startsWith("https://www.google.com/recaptcha/api2/anchor?")).findFirst().get().getPayload().get("frameId").asString();
+        List<BaseChromeEvent> events2 = chromeInstance.getDevToolsEvents("Page.frameDetached");
+        while (events2 == null || events2.stream().filter(chromeEvent -> chromeEvent.getPayload().has("frameId") && chromeEvent.getPayload().get("frameId").asString().equals(frameId)).findFirst().isEmpty()) {
+            Thread.sleep(100);
+            events2 = chromeInstance.getDevToolsEvents("Page.frameDetached");
+        }
+
+        String getBoundingClientRectScript = """
+                (function(){
+                const boundingClientRect = document.evaluate("//button[contains(text(),'Проверить')]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.getBoundingClientRect();
+                return {x: boundingClientRect.left + boundingClientRect.width/2, y: boundingClientRect.top + boundingClientRect.height/2};
+                })()
+                """.replace("\"", "\\\"").replace("\n", " ");
+        chromeInstance.invokeMethod("""
+                {
+                  "id": 3,
+                  "sessionId": "%s",
+                  "method": "Runtime.evaluate",
+                  "params": {
+                    "expression": "%s",
+                    "returnByValue": true
+                  }
+                }
+                """.formatted(attachToNewWindowResponse.getResult().get("sessionId").asString(), getBoundingClientRectScript));
+        BaseChromeCommandResponse getBoundingClientRectResponse = null;
+        while ((getBoundingClientRectResponse = chromeInstance.getDevToolsResponse(3)) == null) {
+            Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
+        }
+        System.out.printf("✅ Runtime.evaluate getBoundingClientRect: %s%n", getBoundingClientRectResponse);
+
+        int x = Math.toIntExact(Math.round(getBoundingClientRectResponse.getResult().get("result").get("value").get("x").asDouble()));
+        int y = Math.toIntExact(Math.round(getBoundingClientRectResponse.getResult().get("result").get("value").get("y").asDouble()));
+        click(attachToNewWindowResponse.getResult().get("sessionId").asString(), x, y);
+        Assertions.assertDoesNotThrow(() -> Thread.sleep(6000));
+        String getScoreScript = """
+                (function(){
+                return document.evaluate("//code[contains(text(),'{')]", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.textContent;
+                })()
+                """.replace("\"", "\\\"").replace("\n", " ");
+        chromeInstance.invokeMethod("""
+                {
+                  "id": 10000,
+                  "sessionId": "%s",
+                  "method": "Runtime.evaluate",
+                  "params": {
+                    "expression": "%s",
+                    "returnByValue": true
+                  }
+                }
+                """.formatted(attachToNewWindowResponse.getResult().get("sessionId").asString(), getScoreScript));
+        BaseChromeCommandResponse getScoreScriptResponse = null;
+        while ((getScoreScriptResponse = chromeInstance.getDevToolsResponse(10000)) == null) {
+            Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
+        }
+        System.out.printf("✅ Runtime.evaluate getScore: %s%n", getScoreScriptResponse);
+
+        GoogleReCaptchaV3ScoreMetaData googleReCaptchaV3ScoreMetaData = JsonUtils.readValue(getScoreScriptResponse.getResult().get("result").get("value").asString(), GoogleReCaptchaV3ScoreMetaData.class);
+        Assertions.assertTrue(Double.valueOf(googleReCaptchaV3ScoreMetaData.getScore()) >= 0.7);
+        System.out.printf("✅ Google reCAPTCHA V3 has been passed with score: %s!!!!!%n", googleReCaptchaV3ScoreMetaData.getScore());
+    }
+
+    private void click(String sessionId, int x, int y) {
+        Random random = new Random(System.nanoTime() ^ Thread.currentThread().threadId());
+        int id = 200 + random.nextInt(1000);
+
+        int startX = x - 50 + random.nextInt(100);
+        int startY = y - 40 + random.nextInt(80);
+
+        int steps = 4 + random.nextInt(5);
+        List<Integer> trajectoryX = new ArrayList<>();
+        List<Integer> trajectoryY = new ArrayList<>();
+
+        for (int i = 0; i <= steps; i++) {
+            double t = (double) i / steps;
+
+            double ease = 3 * t * t - 2 * t * t * t;
+            double randomFactor = 1 + (random.nextDouble() - 0.5) * 0.1;
+
+            int curX = (int) (startX + (x - startX) * ease * randomFactor);
+            int curY = (int) (startY + (y - startY) * ease * randomFactor);
+
+            if (t > 0.7) {
+                curX += random.nextInt(3) - 1;
+                curY += random.nextInt(3) - 1;
+            }
+
+            trajectoryX.add(curX);
+            trajectoryY.add(curY);
+        }
+
+        for (int i = 0; i < trajectoryX.size(); i++) {
+            chromeInstance.invokeMethod(String.format("""
+                    {
+                      "id": %d,
+                      "sessionId": "%s",
+                      "method": "Input.dispatchMouseEvent",
+                      "params": {
+                        "type": "mouseMoved",
+                        "x": %d,
+                        "y": %d,
+                        "button": "none",
+                        "clickCount": 0,
+                        "pointerType": "mouse"
+                      }
+                    }
+                    """, id++, sessionId, trajectoryX.get(i), trajectoryY.get(i)));
+
+            waitForResponse(id - 1);
+
+            int delay;
+            if (i < trajectoryX.size() - 2) {
+                delay = 50 + random.nextInt(40);
+            } else if (i == trajectoryX.size() - 2) {
+                delay = 100 + random.nextInt(80);
+            } else {
+                delay = 120 + random.nextInt(100);
+            }
+
+            try {
+                Thread.sleep(delay);
+            } catch (Exception e) {
+            }
+        }
+
+        try {
+            Thread.sleep(150 + random.nextInt(100));
+        } catch (Exception e) {
+        }
+
+        int clickX = x + random.nextInt(3) - 1;
+        int clickY = y + random.nextInt(3) - 1;
+
+        chromeInstance.invokeMethod(String.format("""
+                {
+                  "id": %d,
+                  "sessionId": "%s",
+                  "method": "Input.dispatchMouseEvent",
+                  "params": {
+                    "type": "mousePressed",
+                    "x": %d,
+                    "y": %d,
+                    "button": "left",
+                    "clickCount": 1,
+                    "pointerType": "mouse"
+                  }
+                }
+                """, id++, sessionId, clickX, clickY));
+
+        waitForResponse(id - 1);
+
+        try {
+            Thread.sleep(80 + random.nextInt(60));
+        } catch (Exception e) {
+        }
+
+        chromeInstance.invokeMethod(String.format("""
+                {
+                  "id": %d,
+                  "sessionId": "%s",
+                  "method": "Input.dispatchMouseEvent",
+                  "params": {
+                    "type": "mouseReleased",
+                    "x": %d,
+                    "y": %d,
+                    "button": "left",
+                    "clickCount": 1,
+                    "pointerType": "mouse"
+                  }
+                }
+                """, id++, sessionId, clickX, clickY));
+
+        waitForResponse(id - 1);
+
+        for (int i = 0; i < 2; i++) {
+            chromeInstance.invokeMethod(String.format("""
+                            {
+                              "id": %d,
+                              "sessionId": "%s",
+                              "method": "Input.dispatchMouseEvent",
+                              "params": {
+                                "type": "mouseMoved",
+                                "x": %d,
+                                "y": %d,
+                                "button": "none",
+                                "clickCount": 0,
+                                "pointerType": "mouse"
+                              }
+                            }
+                            """, id++, sessionId,
+                    clickX + 10 + random.nextInt(20),
+                    clickY + 10 + random.nextInt(15)));
+
+            waitForResponse(id - 1);
+            try {
+                Thread.sleep(50 + random.nextInt(50));
+            } catch (Exception e) {
+            }
+        }
+    }
+
+    private void waitForResponse(int expectedId) {
+        int attempts = 0;
+        while (chromeInstance.getDevToolsResponse(expectedId) == null && attempts < 30) {
+            try {
+                Thread.sleep(new Random().nextInt(12));
+            } catch (InterruptedException ignored) {}
+            attempts++;
+        }
     }
 
     @AfterEach

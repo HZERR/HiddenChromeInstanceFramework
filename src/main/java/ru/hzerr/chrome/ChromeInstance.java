@@ -4,10 +4,9 @@ import okhttp3.Cache;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.WebSocket;
-import ru.hzerr.ex.ChromeConnectionException;
-import ru.hzerr.ex.ChromeInstanceException;
-import ru.hzerr.ex.ChromeLaunchException;
-import ru.hzerr.ex.ChromeShutdownException;
+import ru.hzerr.ex.*;
+import ru.hzerr.model.base.BaseChromeCommandResponse;
+import ru.hzerr.model.base.BaseChromeEvent;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -24,6 +23,8 @@ public abstract class ChromeInstance implements IChromeDevToolsLifecycle {
     private Process chromeInstanceProcess;
     private OkHttpClient chromeInstanceDevToolsClient;
     private WebSocket chromeInstanceDevToolsWebSocket;
+    private ChromeInstanceDevToolsWebSocketListener chromeInstanceDevToolsWebSocketListener;
+    private IChromeInstanceDevToolsWebSocketFactory chromeInstanceDevToolsWebSocketFactory = new ChromeInstanceDevToolsWebSocketFactory();
 
     public ChromeInstance() {
     }
@@ -44,10 +45,26 @@ public abstract class ChromeInstance implements IChromeDevToolsLifecycle {
                     .connectTimeout(Duration.ofSeconds(60))
                     .readTimeout(Duration.ofSeconds(0))
                     .build();
-            this.chromeInstanceDevToolsWebSocket = chromeInstanceDevToolsClient.newWebSocket(new Request.Builder().url(getConnectionEndpoint()).build(), new ChromeInstanceDevToolsWebSocket());
+            this.chromeInstanceDevToolsWebSocketListener = chromeInstanceDevToolsWebSocketFactory.create();
+            this.chromeInstanceDevToolsWebSocket = chromeInstanceDevToolsClient.newWebSocket(new Request.Builder().url(getConnectionEndpoint()).build(), chromeInstanceDevToolsWebSocketListener);
         } catch (Exception e) {
             throw new ChromeConnectionException("Failed to establish a connection to Chrome DevTools endpoint", e);
         }
+    }
+
+    public void invokeMethod(String method) {
+        if (chromeInstanceDevToolsWebSocket != null) {
+            chromeInstanceDevToolsWebSocket.send(method);
+        } else
+            throw new ChromeIllegalStateException("INSERT HERE"); // todo
+    }
+
+    public BaseChromeCommandResponse getDevToolsResponse(long id) {
+        return chromeInstanceDevToolsWebSocketListener.getResponse(id);
+    }
+
+    public List<BaseChromeEvent> getDevToolsEvents(String method) {
+        return chromeInstanceDevToolsWebSocketListener.getEvents(method);
     }
 
     protected abstract String getConnectionEndpoint() throws ChromeInstanceException;
@@ -69,6 +86,7 @@ public abstract class ChromeInstance implements IChromeDevToolsLifecycle {
                 throw new ChromeShutdownException("Failed to close chrome instance websocket", e);
             }
             chromeInstanceDevToolsWebSocket = null;
+            chromeInstanceDevToolsWebSocketListener = null;
         }
 
         if (chromeInstanceDevToolsClient != null) {
@@ -144,5 +162,9 @@ public abstract class ChromeInstance implements IChromeDevToolsLifecycle {
 
     protected boolean isRunning() {
         return chromeInstanceProcess != null && chromeInstanceProcess.isAlive();
+    }
+
+    public void setChromeInstanceDevToolsWebSocketFactory(IChromeInstanceDevToolsWebSocketFactory chromeInstanceDevToolsWebSocketFactory) {
+        this.chromeInstanceDevToolsWebSocketFactory = chromeInstanceDevToolsWebSocketFactory;
     }
 }
