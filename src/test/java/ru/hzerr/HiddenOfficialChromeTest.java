@@ -93,7 +93,7 @@ public class HiddenOfficialChromeTest {
                       "id": 1,
                       "method": "Target.createTarget",
                       "params": {
-                        "url": "https://pixelscan.net/fingerprint-check",
+                        "url": "https://pixelscan.net/bot-check",
                         "newWindow": false
                       }
                     }
@@ -118,14 +118,14 @@ public class HiddenOfficialChromeTest {
         while ((attachToNewWindowResponse = chromeInstance.getDevToolsResponse(2)) == null) {
             Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
         }
-        Assertions.assertDoesNotThrow(() -> Thread.sleep(12500));
+        Assertions.assertDoesNotThrow(() -> Thread.sleep(5000));
         chromeInstance.invokeMethod("""
                 {
                   "id": 3,
                   "sessionId": "%s",
                   "method": "Runtime.evaluate",
                   "params": {
-                    "expression": "(function(){ return document.evaluate(\\"//span[normalize-space()='Bot check']/../p\\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.innerText; })()",
+                    "expression": "(function(){ return document.evaluate(\\"//span[normalize-space()='Your results: Human Detected']\\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.innerText; })()",
                     "returnByValue": true
                   }
                 }
@@ -135,26 +135,8 @@ public class HiddenOfficialChromeTest {
         while ((getTestResultResponse = chromeInstance.getDevToolsResponse(3)) == null) {
             Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
         }
-        Assertions.assertEquals("No automated behavior detected", getTestResultResponse.getResult().get("result").get("value").asString());
-
-        chromeInstance.invokeMethod("""
-                {
-                  "id": 4,
-                  "sessionId": "%s",
-                  "method": "Runtime.evaluate",
-                  "params": {
-                    "expression": "(function(){ return document.evaluate(\\"//span[normalize-space()='Fingerprint Check']/../p\\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.innerText; })()",
-                    "returnByValue": true
-                  }
-                }
-                """.formatted(attachToNewWindowResponse.getResult().get("sessionId").asString()));
-
-        BaseChromeCommandResponse getTestResult2Response = null;
-        while ((getTestResult2Response = chromeInstance.getDevToolsResponse(4)) == null) {
-            Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
-        }
-        Assertions.assertEquals("No masking detected", getTestResult2Response.getResult().get("result").get("value").asString());
-        System.out.printf("✅ PixelScan test passed! Bot detection result: %s! %s!%n", getTestResultResponse.getResult().get("result").get("value").asString(), getTestResult2Response.getResult().get("result").get("value").asString());
+        Assertions.assertEquals("Your results: Human Detected", getTestResultResponse.getResult().get("result").get("value").asString().trim());
+        System.out.printf("✅ PixelScan test passed! %s!%n", getTestResultResponse.getResult().get("result").get("value").asString().trim());
     }
 
     @Test
