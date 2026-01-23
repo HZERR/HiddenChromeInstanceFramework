@@ -73,6 +73,158 @@ public class HiddenOfficialChromeTest {
     }
 
     @Test
+    public void pixelScanTest() {
+        Assertions.assertDoesNotThrow(() -> Thread.sleep(1000));
+        Assertions.assertDoesNotThrow(() -> chromeInstance.connect());
+        chromeInstance.invokeMethod("""
+                    {
+                      "id": 0,
+                      "method": "Network.setExtraHTTPHeaders",
+                      "params": {
+                        "headers": {
+                          "Referer": "https://www.google.com/"
+                        }
+                      }
+                    }
+                """);
+        waitForResponse(0);
+        chromeInstance.invokeMethod("""
+                    {
+                      "id": 1,
+                      "method": "Target.createTarget",
+                      "params": {
+                        "url": "https://pixelscan.net/fingerprint-check",
+                        "newWindow": false
+                      }
+                    }
+                """);
+        BaseChromeCommandResponse openNewWindowResponse = null;
+        while ((openNewWindowResponse = chromeInstance.getDevToolsResponse(1)) == null) {
+            Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
+        }
+
+        chromeInstance.invokeMethod("""
+                    {
+                      "id": 2,
+                      "method": "Target.attachToTarget",
+                      "params": {
+                        "targetId": "%s",
+                        "flatten": true
+                      }
+                    }
+                """.formatted(openNewWindowResponse.getResult().get("targetId").asString()));
+
+        BaseChromeCommandResponse attachToNewWindowResponse = null;
+        while ((attachToNewWindowResponse = chromeInstance.getDevToolsResponse(2)) == null) {
+            Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
+        }
+        Assertions.assertDoesNotThrow(() -> Thread.sleep(12500));
+        chromeInstance.invokeMethod("""
+                {
+                  "id": 3,
+                  "sessionId": "%s",
+                  "method": "Runtime.evaluate",
+                  "params": {
+                    "expression": "(function(){ return document.evaluate(\\"//span[normalize-space()='Bot check']/../p\\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.innerText; })()",
+                    "returnByValue": true
+                  }
+                }
+                """.formatted(attachToNewWindowResponse.getResult().get("sessionId").asString()));
+
+        BaseChromeCommandResponse getTestResultResponse = null;
+        while ((getTestResultResponse = chromeInstance.getDevToolsResponse(3)) == null) {
+            Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
+        }
+        Assertions.assertEquals("No automated behavior detected", getTestResultResponse.getResult().get("result").get("value").asString());
+
+        chromeInstance.invokeMethod("""
+                {
+                  "id": 4,
+                  "sessionId": "%s",
+                  "method": "Runtime.evaluate",
+                  "params": {
+                    "expression": "(function(){ return document.evaluate(\\"//span[normalize-space()='Fingerprint Check']/../p\\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.innerText; })()",
+                    "returnByValue": true
+                  }
+                }
+                """.formatted(attachToNewWindowResponse.getResult().get("sessionId").asString()));
+
+        BaseChromeCommandResponse getTestResult2Response = null;
+        while ((getTestResult2Response = chromeInstance.getDevToolsResponse(4)) == null) {
+            Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
+        }
+        Assertions.assertEquals("No masking detected", getTestResult2Response.getResult().get("result").get("value").asString());
+        System.out.printf("✅ PixelScan test passed! Bot detection result: %s! %s!%n", getTestResultResponse.getResult().get("result").get("value").asString(), getTestResult2Response.getResult().get("result").get("value").asString());
+    }
+
+    @Test
+    public void browserScanTest() {
+        Assertions.assertDoesNotThrow(() -> Thread.sleep(1000));
+        Assertions.assertDoesNotThrow(() -> chromeInstance.connect());
+        chromeInstance.invokeMethod("""
+                    {
+                      "id": 0,
+                      "method": "Network.setExtraHTTPHeaders",
+                      "params": {
+                        "headers": {
+                          "Referer": "https://www.google.com/"
+                        }
+                      }
+                    }
+                """);
+        waitForResponse(0);
+        chromeInstance.invokeMethod("""
+                    {
+                      "id": 1,
+                      "method": "Target.createTarget",
+                      "params": {
+                        "url": "https://www.browserscan.net/bot-detection",
+                        "newWindow": false
+                      }
+                    }
+                """);
+        BaseChromeCommandResponse openNewWindowResponse = null;
+        while ((openNewWindowResponse = chromeInstance.getDevToolsResponse(1)) == null) {
+            Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
+        }
+
+        chromeInstance.invokeMethod("""
+                    {
+                      "id": 2,
+                      "method": "Target.attachToTarget",
+                      "params": {
+                        "targetId": "%s",
+                        "flatten": true
+                      }
+                    }
+                """.formatted(openNewWindowResponse.getResult().get("targetId").asString()));
+
+        BaseChromeCommandResponse attachToNewWindowResponse = null;
+        while ((attachToNewWindowResponse = chromeInstance.getDevToolsResponse(2)) == null) {
+            Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
+        }
+        Assertions.assertDoesNotThrow(() -> Thread.sleep(5000));
+        chromeInstance.invokeMethod("""
+                {
+                  "id": 3,
+                  "sessionId": "%s",
+                  "method": "Runtime.evaluate",
+                  "params": {
+                    "expression": "(function(){ return document.evaluate(\\"//strong[normalize-space()='Test Results:']/../strong[2]\\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue.innerText; })()",
+                    "returnByValue": true
+                  }
+                }
+                """.formatted(attachToNewWindowResponse.getResult().get("sessionId").asString()));
+
+        BaseChromeCommandResponse getTestResultResponse = null;
+        while ((getTestResultResponse = chromeInstance.getDevToolsResponse(3)) == null) {
+            Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
+        }
+        Assertions.assertEquals("Normal", getTestResultResponse.getResult().get("result").get("value").asString());
+        System.out.printf("✅ BrowserScan test passed! Bot detection result: %s%n", getTestResultResponse.getResult().get("result").get("value").asString());
+    }
+
+    @Test
     public void bypassCloudflareTest() {
         Assertions.assertDoesNotThrow(() -> Thread.sleep(1000));
         Assertions.assertDoesNotThrow(() -> chromeInstance.connect());
