@@ -1,10 +1,11 @@
-package ru.hzerr.generated;
+package ru.hzerr.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Arrays;
 import java.util.StringJoiner;
 
+@Deprecated
 public class ExecutionContextCollection {
 
     @JsonProperty("targetInfos")

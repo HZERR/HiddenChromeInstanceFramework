@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.StringJoiner;
 
-public class ChromeCommandResponse<R, E> {
+public class ChromeInstanceResponse<R, E> {
 
     private long id;
     private String sessionId;
@@ -12,7 +12,7 @@ public class ChromeCommandResponse<R, E> {
     @JsonProperty("error")
     private ChromeExceptionMetaData<E> chromeExceptionMetaData;
 
-    public ChromeCommandResponse() {
+    public ChromeInstanceResponse() {
     }
 
     public long getId() { return id; }
@@ -33,7 +33,7 @@ public class ChromeCommandResponse<R, E> {
 
     @Override
     public String toString() {
-        return new StringJoiner(", ", ChromeCommandResponse.class.getSimpleName() + "[", "]")
+        return new StringJoiner(", ", ChromeInstanceResponse.class.getSimpleName() + "[", "]")
                 .add("id=" + id)
                 .add("sessionId='" + sessionId + "'")
                 .add("result=" + result)

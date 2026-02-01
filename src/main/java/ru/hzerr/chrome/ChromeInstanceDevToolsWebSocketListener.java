@@ -9,23 +9,29 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.hzerr.ex.ChromeInstanceException;
+import ru.hzerr.ex.ChromeInstanceInterruptedException;
+import ru.hzerr.ex.ChromeInstanceResponseNotFoundException;
 import ru.hzerr.ex.ChromeInstanceResponseParsableException;
-import ru.hzerr.model.base.BaseChromeCommandResponse;
+import ru.hzerr.model.base.BaseChromeInstanceResponse;
 import ru.hzerr.model.base.BaseChromeEvent;
 import ru.hzerr.utils.JsonUtils;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.*;
 
 public class ChromeInstanceDevToolsWebSocketListener extends WebSocketListener implements IChromeInstanceDevToolsWebSocketListener {
 
-    private final Map<String, List<BaseChromeEvent>> chromeInstanceEvents = new ConcurrentHashMap<>();
-    private final Map<Long, BaseChromeCommandResponse> chromeInstanceResponses = new ConcurrentHashMap<>();
     private static final Logger logger = LogManager.getLogger(ChromeInstanceDevToolsWebSocketListener.class);
+
+    private final Map<String, List<BaseChromeEvent>> chromeInstanceEvents = new ConcurrentHashMap<>();
+    private final BlockingQueue<BaseChromeInstanceResponse> chromeInstanceCommandResponses = new LinkedBlockingQueue<>();
+
+    @Deprecated
+    private final Map<Long, BaseChromeInstanceResponse> chromeInstanceResponses = new ConcurrentHashMap<>();
 
     public ChromeInstanceDevToolsWebSocketListener() {
         super();
@@ -40,9 +46,9 @@ public class ChromeInstanceDevToolsWebSocketListener extends WebSocketListener i
     public void onMessage(@NotNull WebSocket webSocket, @NotNull String text) {
 //        logger.debug("✅ Получено сообщение! {}", text);
         try {
-            JsonNode chromeInstanceResponseAsJsonNode = JsonUtils.readTree(text);
+            JsonNode chromeInstanceResponseAsJsonNode = JsonUtils.readValueAsJsonNode(text);
             if (chromeInstanceResponseAsJsonNode.has("id")) {
-                onMessage(webSocket, JsonUtils.readValue(text, BaseChromeCommandResponse.class));
+                onMessage(webSocket, JsonUtils.readValue(text, BaseChromeInstanceResponse.class));
                 return;
             }
 
@@ -96,16 +102,44 @@ public class ChromeInstanceDevToolsWebSocketListener extends WebSocketListener i
     }
 
     @Override
-    public void onMessage(@NotNull WebSocket webSocket, BaseChromeCommandResponse chromeCommandResponse) {
+    public void onMessage(@NotNull WebSocket webSocket, BaseChromeInstanceResponse chromeCommandResponse) {
         chromeInstanceResponses.put(chromeCommandResponse.getId(), chromeCommandResponse);
+        chromeInstanceCommandResponses.offer(chromeCommandResponse);
 
         logger.debug("✅ Получен ответ браузера! {}", chromeCommandResponse);
     }
 
-    public BaseChromeCommandResponse getResponse(long id) {
+    @Override
+    public BaseChromeInstanceResponse waitForResponse(long id, Duration timeout) {
+        long startTime = System.currentTimeMillis();
+        long endTime = startTime + timeout.toMillis();
+
+        while (System.currentTimeMillis() < endTime) {
+            try {
+                long remainingTime = endTime - System.currentTimeMillis();
+                if (remainingTime <= 0) {
+                    break;
+                }
+
+                BaseChromeInstanceResponse response = chromeInstanceCommandResponses.poll(remainingTime, TimeUnit.MILLISECONDS);
+                if (response != null && response.getId() == id) {
+                    return response;
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new ChromeInstanceInterruptedException(e.getMessage(), e);
+            }
+        }
+
+        throw new ChromeInstanceResponseNotFoundException("Chrome instance did not receive a response for command '%s' within %s milliseconds".formatted(id, timeout.toMillis()));
+    }
+
+    @Deprecated
+    public BaseChromeInstanceResponse getResponse(long id) {
         return chromeInstanceResponses.get(id);
     }
 
+    @Deprecated
     public List<BaseChromeEvent> getEvents(String method) {
         return chromeInstanceEvents.get(method);
     }

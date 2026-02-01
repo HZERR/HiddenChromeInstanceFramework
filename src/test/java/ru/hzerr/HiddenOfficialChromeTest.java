@@ -7,14 +7,16 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.hzerr.chrome.HiddenChromeInstance;
-import ru.hzerr.generated.ExecutionContextCollection;
+import ru.hzerr.model.ExecutionContextCollection;
 import ru.hzerr.model.ChromeDevToolsMetaData;
 import ru.hzerr.model.GoogleReCaptchaV3ScoreMetaData;
-import ru.hzerr.model.base.BaseChromeCommandResponse;
+import ru.hzerr.model.base.BaseChromeInstanceRequest;
+import ru.hzerr.model.base.BaseChromeInstanceResponse;
 import ru.hzerr.model.base.BaseChromeEvent;
 import ru.hzerr.parameters.HiddenChromeV144InstanceParameters;
 import ru.hzerr.parameters.HiddenChromeV144InstanceParameters.HiddenChromeV144InstanceParametersBuilder;
 import ru.hzerr.utils.JsonUtils;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +40,6 @@ public class HiddenOfficialChromeTest {
     private static final String CHROME_INSTANCE_LOCATION = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";                                                        // <<< CHANGE IT IF NEEDED
     private static final String CHROME_DEV_TOOLS_SPECIFICATION_LOCATION = "C:\\Innova\\devtools-specification.json";                                                            // <<< CHANGE IT IF NEEDED
     private static final String REMOTE_DEBUGGING_PORT = "7777";                                                                                                                 // <<< CHANGE IT IF NEEDED
-
     private HiddenChromeInstance chromeInstance;
     private Path userDataLocation;
 
@@ -73,6 +74,19 @@ public class HiddenOfficialChromeTest {
     }
 
     @Test
+    public void sendMessageTest() {
+        Assertions.assertDoesNotThrow(() -> chromeInstance.connect());
+        BaseChromeInstanceRequest request1 = new BaseChromeInstanceRequest();
+        request1.setMethod("Target.createTarget");
+        ObjectNode params1 = JsonUtils.createObjectNode();
+        params1.put("url", "https://pixelscan.net/bot-check");
+        params1.put("newWindow", false);
+        request1.setParams(params1);
+        String targetId = chromeInstance.sendMessage(request1).getResult().get("targetId").asString();
+        System.out.printf("✅ Target.getTargets: %s%n", targetId);
+    }
+
+    @Test
     public void pixelScanTest() {
         Assertions.assertDoesNotThrow(() -> Thread.sleep(1000));
         Assertions.assertDoesNotThrow(() -> chromeInstance.connect());
@@ -98,7 +112,7 @@ public class HiddenOfficialChromeTest {
                       }
                     }
                 """);
-        BaseChromeCommandResponse openNewWindowResponse = null;
+        BaseChromeInstanceResponse openNewWindowResponse = null;
         while ((openNewWindowResponse = chromeInstance.getDevToolsResponse(1)) == null) {
             Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
         }
@@ -114,7 +128,7 @@ public class HiddenOfficialChromeTest {
                     }
                 """.formatted(openNewWindowResponse.getResult().get("targetId").asString()));
 
-        BaseChromeCommandResponse attachToNewWindowResponse = null;
+        BaseChromeInstanceResponse attachToNewWindowResponse = null;
         while ((attachToNewWindowResponse = chromeInstance.getDevToolsResponse(2)) == null) {
             Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
         }
@@ -131,7 +145,7 @@ public class HiddenOfficialChromeTest {
                 }
                 """.formatted(attachToNewWindowResponse.getResult().get("sessionId").asString()));
 
-        BaseChromeCommandResponse getTestResultResponse = null;
+        BaseChromeInstanceResponse getTestResultResponse = null;
         while ((getTestResultResponse = chromeInstance.getDevToolsResponse(3)) == null) {
             Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
         }
@@ -165,7 +179,7 @@ public class HiddenOfficialChromeTest {
                       }
                     }
                 """);
-        BaseChromeCommandResponse openNewWindowResponse = null;
+        BaseChromeInstanceResponse openNewWindowResponse = null;
         while ((openNewWindowResponse = chromeInstance.getDevToolsResponse(1)) == null) {
             Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
         }
@@ -181,7 +195,7 @@ public class HiddenOfficialChromeTest {
                     }
                 """.formatted(openNewWindowResponse.getResult().get("targetId").asString()));
 
-        BaseChromeCommandResponse attachToNewWindowResponse = null;
+        BaseChromeInstanceResponse attachToNewWindowResponse = null;
         while ((attachToNewWindowResponse = chromeInstance.getDevToolsResponse(2)) == null) {
             Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
         }
@@ -198,7 +212,7 @@ public class HiddenOfficialChromeTest {
                 }
                 """.formatted(attachToNewWindowResponse.getResult().get("sessionId").asString()));
 
-        BaseChromeCommandResponse getTestResultResponse = null;
+        BaseChromeInstanceResponse getTestResultResponse = null;
         while ((getTestResultResponse = chromeInstance.getDevToolsResponse(3)) == null) {
             Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
         }
@@ -232,7 +246,7 @@ public class HiddenOfficialChromeTest {
                       }
                     }
                 """);
-        BaseChromeCommandResponse openNewWindowResponse = null;
+        BaseChromeInstanceResponse openNewWindowResponse = null;
         while ((openNewWindowResponse = chromeInstance.getDevToolsResponse(1)) == null) {
             Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
         }
@@ -248,7 +262,7 @@ public class HiddenOfficialChromeTest {
                     }
                 """.formatted(openNewWindowResponse.getResult().get("targetId").asString()));
 
-        BaseChromeCommandResponse attachToNewWindowResponse = null;
+        BaseChromeInstanceResponse attachToNewWindowResponse = null;
         while ((attachToNewWindowResponse = chromeInstance.getDevToolsResponse(2)) == null) {
             Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
         }
@@ -281,7 +295,7 @@ public class HiddenOfficialChromeTest {
                   "method": "Target.getTargets"
                 }
                 """);
-        BaseChromeCommandResponse getTargetsResponse = null;
+        BaseChromeInstanceResponse getTargetsResponse = null;
         while ((getTargetsResponse = chromeInstance.getDevToolsResponse(4)) == null) {
             Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
         }
@@ -299,7 +313,7 @@ public class HiddenOfficialChromeTest {
                     }
                 """.formatted(Arrays.stream(executionContextCollection.getExecutionContexts()).filter(executionContext -> executionContext.getTitle() != null && executionContext.getTitle().startsWith("https://challenges.cloudflare.com/cdn-cgi/challenge-platform/h/b/turnstile")).findFirst().get().getTargetId()));
 
-        BaseChromeCommandResponse attachToIFrameResponse = null;
+        BaseChromeInstanceResponse attachToIFrameResponse = null;
         while ((attachToIFrameResponse = chromeInstance.getDevToolsResponse(5)) == null) {
             Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
         }
@@ -334,7 +348,7 @@ public class HiddenOfficialChromeTest {
                 }
                 """.formatted(cloudflareIFrameSessionId, getBoundingClientRectScript));
 
-        BaseChromeCommandResponse getBoundingClientRectResponse = null;
+        BaseChromeInstanceResponse getBoundingClientRectResponse = null;
         while ((getBoundingClientRectResponse = chromeInstance.getDevToolsResponse(7)) == null) {
             Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
         }
@@ -351,7 +365,7 @@ public class HiddenOfficialChromeTest {
                   "method": "Target.getTargets"
                 }
                 """);
-        BaseChromeCommandResponse getTargetsResponse2 = null;
+        BaseChromeInstanceResponse getTargetsResponse2 = null;
         while ((getTargetsResponse2 = chromeInstance.getDevToolsResponse(8)) == null) {
             Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
         }
@@ -388,7 +402,7 @@ public class HiddenOfficialChromeTest {
                   }
                 }
                 """);
-        BaseChromeCommandResponse openNewWindowResponse = null;
+        BaseChromeInstanceResponse openNewWindowResponse = null;
         while ((openNewWindowResponse = chromeInstance.getDevToolsResponse(1)) == null) {
             Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
         }
@@ -405,7 +419,7 @@ public class HiddenOfficialChromeTest {
                 }
                 """.formatted(openNewWindowResponse.getResult().get("targetId").asString()));
 
-        BaseChromeCommandResponse attachToNewWindowResponse = null;
+        BaseChromeInstanceResponse attachToNewWindowResponse = null;
         while ((attachToNewWindowResponse = chromeInstance.getDevToolsResponse(2)) == null) {
             Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
         }
@@ -450,7 +464,7 @@ public class HiddenOfficialChromeTest {
                   }
                 }
                 """.formatted(attachToNewWindowResponse.getResult().get("sessionId").asString(), getBoundingClientRectScript));
-        BaseChromeCommandResponse getBoundingClientRectResponse = null;
+        BaseChromeInstanceResponse getBoundingClientRectResponse = null;
         while ((getBoundingClientRectResponse = chromeInstance.getDevToolsResponse(3)) == null) {
             Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
         }
@@ -476,7 +490,7 @@ public class HiddenOfficialChromeTest {
                   }
                 }
                 """.formatted(attachToNewWindowResponse.getResult().get("sessionId").asString(), getScoreScript));
-        BaseChromeCommandResponse getScoreScriptResponse = null;
+        BaseChromeInstanceResponse getScoreScriptResponse = null;
         while ((getScoreScriptResponse = chromeInstance.getDevToolsResponse(10000)) == null) {
             Assertions.assertDoesNotThrow(() -> Thread.sleep(500));
         }

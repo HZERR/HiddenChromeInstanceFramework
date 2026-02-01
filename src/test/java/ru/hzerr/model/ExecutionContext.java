@@ -1,7 +1,8 @@
-package ru.hzerr.generated;
+package ru.hzerr.model;
 
 import java.util.StringJoiner;
 
+@Deprecated
 public class ExecutionContext {
 
     private String targetId;

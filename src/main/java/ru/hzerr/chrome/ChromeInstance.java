@@ -5,8 +5,12 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.WebSocket;
 import ru.hzerr.ex.*;
-import ru.hzerr.model.base.BaseChromeCommandResponse;
+import ru.hzerr.model.ChromeInstanceRequest;
+import ru.hzerr.model.base.BaseChromeInstanceRequest;
+import ru.hzerr.model.base.BaseChromeInstanceResponse;
 import ru.hzerr.model.base.BaseChromeEvent;
+import ru.hzerr.utils.JsonUtils;
+import tools.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -14,17 +18,20 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class ChromeInstance implements IChromeDevToolsLifecycle {
 
     protected static final String CHROME_DEVTOOLS_PROTOCOL_SPECIFICATION = "http://localhost:%s/json/protocol";
     protected static final String CHROME_DEVTOOLS_VERSION = "http://localhost:%s/json/version";
+    private static final int MAX_COMMANDS = 1 << 28;
 
     private Process chromeInstanceProcess;
     private OkHttpClient chromeInstanceDevToolsClient;
     private WebSocket chromeInstanceDevToolsWebSocket;
     private ChromeInstanceDevToolsWebSocketListener chromeInstanceDevToolsWebSocketListener;
     private IChromeInstanceDevToolsWebSocketFactory chromeInstanceDevToolsWebSocketFactory = new ChromeInstanceDevToolsWebSocketFactory();
+    private final AtomicInteger counter = new AtomicInteger(0);
 
     public ChromeInstance() {
     }
@@ -56,10 +63,39 @@ public abstract class ChromeInstance implements IChromeDevToolsLifecycle {
         if (chromeInstanceDevToolsWebSocket != null) {
             chromeInstanceDevToolsWebSocket.send(method);
         } else
-            throw new ChromeIllegalStateException("INSERT HERE"); // todo
+            throw new ChromeIllegalStateException("Connection to Chrome has not been established yet");
     }
 
-    public BaseChromeCommandResponse getDevToolsResponse(long id) {
+    public BaseChromeInstanceResponse sendMessage(BaseChromeInstanceRequest chromeInstanceRequest) {
+        if (chromeInstanceDevToolsWebSocket != null) {
+            int id = counter.getAndIncrement();
+            if (id >= MAX_COMMANDS) throw new ChromeInstanceTooManyRequestException("Exceeded the maximum number of requests that can be sent to the Chrome instance: %d".formatted(MAX_COMMANDS));
+
+            ObjectNode request = JsonUtils.readValueAsObjectNode(chromeInstanceRequest);
+            request.put("id", id);
+
+            chromeInstanceDevToolsWebSocket.send(request.toString());
+            return chromeInstanceDevToolsWebSocketListener.waitForResponse(id, Duration.ofMinutes(3));
+        } else
+            throw new ChromeIllegalStateException("Connection to Chrome has not been established yet");
+    }
+
+    public BaseChromeInstanceResponse sendMessage(BaseChromeInstanceRequest chromeInstanceRequest, Duration timeout) {
+        if (chromeInstanceDevToolsWebSocket != null) {
+            int id = counter.getAndIncrement();
+            if (id >= MAX_COMMANDS) throw new ChromeInstanceTooManyRequestException("Exceeded the maximum number of requests that can be sent to the Chrome instance: %d".formatted(MAX_COMMANDS));
+
+            ObjectNode request = JsonUtils.readValueAsObjectNode(chromeInstanceRequest);
+            request.put("id", id);
+
+            chromeInstanceDevToolsWebSocket.send(request.toString());
+            return chromeInstanceDevToolsWebSocketListener.waitForResponse(id, timeout);
+        } else
+            throw new ChromeIllegalStateException("Connection to Chrome has not been established yet");
+    }
+
+    @Deprecated
+    public BaseChromeInstanceResponse getDevToolsResponse(long id) {
         return chromeInstanceDevToolsWebSocketListener.getResponse(id);
     }
 

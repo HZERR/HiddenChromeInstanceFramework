@@ -1,9 +1,9 @@
 package ru.hzerr.model.base;
 
-import ru.hzerr.model.ChromeCommandResponse;
+import ru.hzerr.model.ChromeInstanceResponse;
 import tools.jackson.databind.JsonNode;
 
-public class BaseChromeCommandResponse extends ChromeCommandResponse<JsonNode, JsonNode> {
+public class BaseChromeInstanceResponse extends ChromeInstanceResponse<JsonNode, JsonNode> {
 
     @Override
     public String toString() {
