@@ -24,61 +24,20 @@ public class Class {
     @JsonProperty("items")
     private ArrayType arrayType;
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public boolean isExperimental() {
-        return experimental;
-    }
-
-    public void setExperimental(boolean experimental) {
-        this.experimental = experimental;
-    }
-
-    public List<Field> getFields() {
-        return fields;
-    }
-
-    public void setFields(List<Field> fields) {
-        this.fields = fields;
-    }
-
-    public boolean isDeprecated() {
-        return deprecated;
-    }
-
-    public void setDeprecated(boolean deprecated) {
-        this.deprecated = deprecated;
-    }
-
-    public ArrayType getArrayType() {
-        return arrayType;
-    }
-
-    public void setArrayType(ArrayType arrayType) {
-        this.arrayType = arrayType;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
+    public boolean isExperimental() { return experimental; }
+    public void setExperimental(boolean experimental) { this.experimental = experimental; }
+    public List<Field> getFields() { return fields; }
+    public void setFields(List<Field> fields) { this.fields = fields; }
+    public boolean isDeprecated() { return deprecated; }
+    public void setDeprecated(boolean deprecated) { this.deprecated = deprecated; }
+    public ArrayType getArrayType() { return arrayType; }
+    public void setArrayType(ArrayType arrayType) { this.arrayType = arrayType; }
 
     @Override
     public String toString() {

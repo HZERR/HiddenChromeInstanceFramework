@@ -10,20 +10,16 @@ public class ChromeDevToolsSpecificationObject {
     private ChromeDevToolsVersion version;
     private List<Domain> domains;
 
-    public ChromeDevToolsVersion getVersion() {
-        return version;
-    }
+    public ChromeDevToolsVersion getVersion() { return version; }
+    public void setVersion(ChromeDevToolsVersion version) { this.version = version; }
+    public List<Domain> getDomains() { return domains; }
+    public void setDomains(List<Domain> domains) { this.domains = domains; }
+    public Domain getDomain(String domainName) {
+        for (Domain domain : domains) {
+            if (domain.getDomain().equals(domainName)) return domain;
+        }
 
-    public void setVersion(ChromeDevToolsVersion version) {
-        this.version = version;
-    }
-
-    public List<Domain> getDomains() {
-        return domains;
-    }
-
-    public void setDomains(List<Domain> domains) {
-        this.domains = domains;
+        throw new IllegalArgumentException("No such domain: " + domainName);
     }
 
     @Override

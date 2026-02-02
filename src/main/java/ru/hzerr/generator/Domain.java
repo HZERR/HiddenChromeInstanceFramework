@@ -16,52 +16,24 @@ public class Domain {
     private List<String> dependencies;
     private List<Class> types;
 
-    public String getDomain() {
-        return domain;
-    }
+    public String getDomain() { return domain; }
+    public void setDomain(String domain) { this.domain = domain; }
+    public boolean isDeprecated() { return deprecated; }
+    public void setDeprecated(boolean deprecated) { this.deprecated = deprecated; }
+    public boolean isExperimental() { return experimental; }
+    public void setExperimental(boolean experimental) { this.experimental = experimental; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public List<String> getDependencies() { return dependencies; }
+    public void setDependencies(List<String> dependencies) { this.dependencies = dependencies; }
+    /** all:number,string,array,integer,object*/ public List<Class> getTypes() { return types; }
+    public void setTypes(List<Class> types) { this.types = types; }
+    public Class getType(String typeName) {
+        for (Class type : types) {
+            if (type.getName().equals(typeName)) return type;
+        }
 
-    public void setDomain(String domain) {
-        this.domain = domain;
-    }
-
-    public boolean isDeprecated() {
-        return deprecated;
-    }
-
-    public void setDeprecated(boolean deprecated) {
-        this.deprecated = deprecated;
-    }
-
-    public boolean isExperimental() {
-        return experimental;
-    }
-
-    public void setExperimental(boolean experimental) {
-        this.experimental = experimental;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public List<String> getDependencies() {
-        return dependencies;
-    }
-
-    public void setDependencies(List<String> dependencies) {
-        this.dependencies = dependencies;
-    }
-
-    public List<Class> getTypes() {
-        return types;
-    }
-
-    public void setTypes(List<Class> types) {
-        this.types = types;
+        throw new IllegalArgumentException("No such type: " + typeName);
     }
 
     @Override
