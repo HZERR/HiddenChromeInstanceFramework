@@ -65,26 +65,19 @@ public class ChromeInstanceDevToolsSpecificationClassCreator implements IChromeI
 
     @Override
     public void createTypes() {
-        Path currentClassLocation = null;
-        try {
-            currentClassLocation = Paths.get(getClass().getProtectionDomain().getCodeSource().getLocation().toURI()).normalize();
-        } catch (URISyntaxException e) { throw new ChromeInstanceSpecificationCreationException("Failed to autodetect class location", e); }
-        log.info("Current source location: {}. Auto-detection of the output directory...", currentClassLocation);
+        Path chromeDevToolsTypesPath = null;
+        if (autoDetectOutputDirectories) {
+            chromeDevToolsTypesPath = findChromeCDPProjectLocation().resolve("type");
+        } else {
+            if (chromeDevToolsCDPDirectoryPath == null) throw new IllegalArgumentException("Chrome DevTools CDP directory path is missing");
+            chromeDevToolsTypesPath = chromeDevToolsCDPDirectoryPath.resolve("type");
+        }
+        log.info("The directory for Chrome DevTools types has been defined: {}", chromeDevToolsTypesPath);
 
-        Path parent = currentClassLocation.getParent();
-        do {
-            if (parent.endsWith(REPOSITORY_NAME)) {
-                log.info("The project directory has been defined: {}", parent);
-                Path chromeDevToolsTypesPath = parent.resolve("src").resolve("main").resolve("java").resolve("ru").resolve("hzerr").resolve("cdp").resolve("type");
-                log.info("The directory for Chrome DevTools types has been defined: {}", chromeDevToolsTypesPath);
-                try {
-                    PathUtils.cleanDirectory(chromeDevToolsTypesPath);
-                    createTypes0(chromeDevToolsTypesPath, createChromeDevToolsSpecification());
-                    return;
-                } catch (Exception e) { throw new ChromeInstanceSpecificationCreationException("Failed to create Chrome DevTools types", e); }
-            }
-        } while ((parent = parent.getParent()) != null);
-        throw new IllegalStateException("The project directory could not be determined");
+        try {
+            PathUtils.cleanDirectory(chromeDevToolsTypesPath);
+            createTypes0(chromeDevToolsTypesPath, createChromeDevToolsSpecification());
+        } catch (Exception e) { throw new ChromeInstanceSpecificationCreationException("Failed to create Chrome DevTools types", e); }
     }
 
     @Override
@@ -95,6 +88,23 @@ public class ChromeInstanceDevToolsSpecificationClassCreator implements IChromeI
     @Override
     public void createEvents() {
 
+    }
+
+    private Path findChromeCDPProjectLocation() {
+        Path currentClassLocation = null;
+        try {
+            currentClassLocation = Paths.get(getClass().getProtectionDomain().getCodeSource().getLocation().toURI()).normalize();
+        } catch (URISyntaxException e) { throw new ChromeInstanceSpecificationCreationException("Failed to autodetect class location", e); }
+        log.info("Current source location: {}. Auto-detection of the output directory...", currentClassLocation);
+
+        Path parent = currentClassLocation.getParent();
+        do {
+            if (parent.endsWith(REPOSITORY_NAME)) {
+                log.info("The project directory has been defined: {}", parent);
+                return parent.resolve("src").resolve("main").resolve("java").resolve("ru").resolve("hzerr").resolve("cdp");
+            }
+        } while ((parent = parent.getParent()) != null);
+        throw new IllegalStateException("The project directory could not be determined");
     }
 
     public void setChromeDevToolsSpecificationPath(Path chromeDevToolsSpecificationPath) {
