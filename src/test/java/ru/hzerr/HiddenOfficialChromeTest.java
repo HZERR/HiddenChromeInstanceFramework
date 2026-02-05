@@ -2,10 +2,13 @@ package ru.hzerr;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.file.PathUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.hzerr.cdp.processor.impl.ChromeInstanceEventProcessorCreator;
 import ru.hzerr.chrome.HiddenChromeInstance;
 import ru.hzerr.model.ExecutionContextCollection;
 import ru.hzerr.model.ChromeDevToolsMetaData;
@@ -40,6 +43,7 @@ public class HiddenOfficialChromeTest {
     private static final String CHROME_INSTANCE_LOCATION = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";                                                        // <<< CHANGE IT IF NEEDED
     private static final String CHROME_DEV_TOOLS_SPECIFICATION_LOCATION = "C:\\Innova\\devtools-specification.json";                                                            // <<< CHANGE IT IF NEEDED
     private static final String REMOTE_DEBUGGING_PORT = "7777";                                                                                                                 // <<< CHANGE IT IF NEEDED
+    private static final Logger log = LogManager.getLogger(HiddenOfficialChromeTest.class);
     private HiddenChromeInstance chromeInstance;
     private Path userDataLocation;
 
@@ -84,6 +88,40 @@ public class HiddenOfficialChromeTest {
         request1.setParams(params1);
         String targetId = chromeInstance.sendMessage(request1).getResult().get("targetId").asString();
         System.out.printf("✅ Target.getTargets: %s%n", targetId);
+    }
+
+    @Test
+    public void eventIntegrationTest() {
+        Assertions.assertDoesNotThrow(() -> chromeInstance.connect());
+        BaseChromeInstanceRequest request1 = new BaseChromeInstanceRequest();
+        request1.setMethod("Target.createTarget");
+        ObjectNode params1 = JsonUtils.createObjectNode();
+        params1.put("url", "https://www.browserscan.net");
+        params1.put("newWindow", false);
+        request1.setParams(params1);
+        String targetId = chromeInstance.sendMessage(request1).getResult().get("targetId").asString();
+        System.out.printf("✅ Target.getTargets: %s%n", targetId);
+
+        BaseChromeInstanceRequest request2 = new BaseChromeInstanceRequest();
+        request2.setMethod("Target.attachToTarget");
+        ObjectNode params2 = JsonUtils.createObjectNode();
+        params2.put("targetId", targetId);
+        params2.put("flatten", true);
+        request2.setParams(params2);
+        String sessionId = chromeInstance.sendMessage(request2).getResult().get("sessionId").asString();
+        System.out.printf("✅ Target.attachToTarget: %s%n", sessionId);
+
+        chromeInstance.registerChromeInstanceEventProcessor(ChromeInstanceEventProcessorCreator.createPageFrameDetachedEventProcessor(
+                event -> log.info("Page frame detached event: {}", event),
+                ex -> log.warn(ex.getMessage(), ex)
+        ));
+
+        BaseChromeInstanceRequest request3 = new BaseChromeInstanceRequest();
+        request3.setMethod("Page.enable");
+        request3.setSessionId(sessionId);
+        chromeInstance.sendMessage(request3);
+
+        Assertions.assertDoesNotThrow(() -> Thread.sleep(20_000));
     }
 
     @Test
