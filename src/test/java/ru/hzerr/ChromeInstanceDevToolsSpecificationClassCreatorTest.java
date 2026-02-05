@@ -8,6 +8,7 @@ import ru.hzerr.cdp.creator.ChromeInstanceDevToolsSpecificationClassCreator;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+// todo: вынести в отдельную либу?
 public class ChromeInstanceDevToolsSpecificationClassCreatorTest {
 
     private static final Path SPECIFICATION_PATH = Paths.get("C:\\Innova\\devtools-specification.json");

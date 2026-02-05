@@ -4,10 +4,12 @@ import okhttp3.Response;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
 import okio.ByteString;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import ru.hzerr.cdp.processor.IChromeInstanceEventProcessor;
 import ru.hzerr.ex.ChromeInstanceException;
 import ru.hzerr.ex.ChromeInstanceInterruptedException;
 import ru.hzerr.ex.ChromeInstanceResponseNotFoundException;
@@ -19,6 +21,7 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -29,6 +32,7 @@ public class ChromeInstanceDevToolsWebSocketListener extends WebSocketListener i
 
     private final Map<String, List<BaseChromeEvent>> chromeInstanceEvents = new ConcurrentHashMap<>();
     private final BlockingQueue<BaseChromeInstanceResponse> chromeInstanceCommandResponses = new LinkedBlockingQueue<>();
+    private final Map<String, List<IChromeInstanceEventProcessor>> chromeInstanceEventProcessors = new ConcurrentHashMap<>();
 
     @Deprecated
     private final Map<Long, BaseChromeInstanceResponse> chromeInstanceResponses = new ConcurrentHashMap<>();
@@ -96,9 +100,14 @@ public class ChromeInstanceDevToolsWebSocketListener extends WebSocketListener i
 
     @Override
     public void onMessage(@NotNull WebSocket webSocket, BaseChromeEvent chromeEvent) {
-        chromeInstanceEvents.computeIfAbsent(chromeEvent.getMethod(), newMethod -> new CopyOnWriteArrayList<>()).add(chromeEvent);
-
         logger.debug("✅ Получено событие! {}", chromeEvent);
+        chromeInstanceEvents.computeIfAbsent(chromeEvent.getMethod(), newMethod -> new CopyOnWriteArrayList<>()).add(chromeEvent);
+        List<IChromeInstanceEventProcessor> processors = chromeInstanceEventProcessors.getOrDefault(chromeEvent.getMethod(), Collections.emptyList());
+        if (CollectionUtils.isNotEmpty(processors)) {
+            for (IChromeInstanceEventProcessor processor : processors) {
+                processor.handle(chromeEvent.getPayload());
+            }
+        }
     }
 
     @Override
@@ -132,6 +141,14 @@ public class ChromeInstanceDevToolsWebSocketListener extends WebSocketListener i
         }
 
         throw new ChromeInstanceResponseNotFoundException("Chrome instance did not receive a response for command '%s' within %s milliseconds".formatted(id, timeout.toMillis()));
+    }
+
+    public void registerChromeInstanceEventProcessor(IChromeInstanceEventProcessor chromeInstanceEventProcessor) {
+        chromeInstanceEventProcessors.computeIfAbsent(chromeInstanceEventProcessor.getEventName(), e -> new CopyOnWriteArrayList<>()).add(chromeInstanceEventProcessor);
+    }
+
+    public void unregisterChromeInstanceEventProcessors(String eventName) {
+        chromeInstanceEventProcessors.remove(eventName);
     }
 
     @Deprecated

@@ -4,8 +4,8 @@ import okhttp3.Cache;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.WebSocket;
+import ru.hzerr.cdp.processor.IChromeInstanceEventProcessor;
 import ru.hzerr.ex.*;
-import ru.hzerr.model.ChromeInstanceRequest;
 import ru.hzerr.model.base.BaseChromeInstanceRequest;
 import ru.hzerr.model.base.BaseChromeInstanceResponse;
 import ru.hzerr.model.base.BaseChromeEvent;
@@ -92,6 +92,14 @@ public abstract class ChromeInstance implements IChromeDevToolsLifecycle {
             return chromeInstanceDevToolsWebSocketListener.waitForResponse(id, timeout);
         } else
             throw new ChromeIllegalStateException("Connection to Chrome has not been established yet");
+    }
+
+    public void registerChromeInstanceEventProcessor(IChromeInstanceEventProcessor chromeInstanceEventProcessor) {
+        chromeInstanceDevToolsWebSocketListener.registerChromeInstanceEventProcessor(chromeInstanceEventProcessor);
+    }
+
+    public void unregisterChromeInstanceEventProcessors(String eventName) {
+        chromeInstanceDevToolsWebSocketListener.unregisterChromeInstanceEventProcessors(eventName);
     }
 
     @Deprecated

@@ -1,0 +1,20 @@
+package ru.hzerr.cdp.processor.impl;
+
+import ru.hzerr.cdp.event.network.DirectUDPSocketCreatedEvent;
+import ru.hzerr.cdp.processor.AbstractChromeInstanceEventProcessor;
+
+public abstract class NetworkDirectUDPSocketCreatedEventProcessor extends AbstractChromeInstanceEventProcessor<DirectUDPSocketCreatedEvent> {
+
+    public NetworkDirectUDPSocketCreatedEventProcessor() {
+        super("Network.directUDPSocketCreated", DirectUDPSocketCreatedEvent.class);
+    }
+
+    @Override
+    protected abstract void onEvent(DirectUDPSocketCreatedEvent event) throws Exception;
+
+    @Override
+    protected abstract void onEventProcessingException(Exception e);
+
+    @Override
+    public String getEventName() { return "Network.directUDPSocketCreated"; }
+}

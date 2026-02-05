@@ -86,17 +86,23 @@ public class ChromeInstanceDevToolsSpecificationClassCreator implements IChromeI
     @Override
     public void createEvents() {
         Path chromeDevToolsEventsPath = null;
+        Path chromeDevToolsEventProcessorsPath = null;
         if (autoDetectOutputDirectories) {
-            chromeDevToolsEventsPath = findChromeCDPProjectLocation().resolve("event");
+            Path chromeCDPProjectLocation = findChromeCDPProjectLocation();
+            chromeDevToolsEventsPath = chromeCDPProjectLocation.resolve("event");
+            chromeDevToolsEventProcessorsPath = chromeCDPProjectLocation.resolve("processor").resolve("impl");
         } else {
             if (chromeDevToolsCDPDirectoryPath == null) throw new IllegalArgumentException("Chrome DevTools CDP directory path is missing");
             chromeDevToolsEventsPath = chromeDevToolsCDPDirectoryPath.resolve("event");
+            chromeDevToolsEventProcessorsPath = chromeDevToolsCDPDirectoryPath.resolve("processor").resolve("impl");
         }
         log.info("The directory for Chrome DevTools events has been defined: {}", chromeDevToolsEventsPath);
+        log.info("The directory for Chrome DevTools event processors has been defined: {}", chromeDevToolsEventsPath);
 
         try {
             PathUtils.cleanDirectory(chromeDevToolsEventsPath);
-            createEvents0(chromeDevToolsEventsPath, createChromeDevToolsSpecification());
+            PathUtils.cleanDirectory(chromeDevToolsEventProcessorsPath);
+            createEvents0(chromeDevToolsEventsPath, chromeDevToolsEventProcessorsPath, createChromeDevToolsSpecification());
         } catch (Exception e) { throw new ChromeInstanceSpecificationCreationException("Failed to create Chrome DevTools events", e); }
     }
 
@@ -141,24 +147,51 @@ public class ChromeInstanceDevToolsSpecificationClassCreator implements IChromeI
         return autoDetectOutputDirectories;
     }
 
-    private void createEvents0(Path chromeDevToolsEventsPath, ChromeDevToolsSpecification chromeDevToolsSpecification) throws IOException {
+    private void createEvents0(Path chromeDevToolsEventsPath, Path chromeDevToolsEventProcessorsPath, ChromeDevToolsSpecification chromeDevToolsSpecification) throws IOException {
         for (Domain domain: chromeDevToolsSpecification.getDomains()) {
             Path domainPath = chromeDevToolsEventsPath.resolve(getShirtPackageByDomainName(domain.getDomain()));
             Files.createDirectories(domainPath);
             log.info("Domain directory has been successfully created: {}!", domainPath);
         }
 
+        StringBuilder creatorEventsImportBuilder = new StringBuilder();
+        StringBuilder creatorEventNameFieldsBuilder = new StringBuilder();
+        StringBuilder creatorCreateMethodsBuilder = new StringBuilder();
         for (Domain domain: chromeDevToolsSpecification.getDomains()) {
             if (domain.getEvents() != null) {
                 for (Event event : domain.getEvents()) {
-                    createEvent(chromeDevToolsEventsPath, chromeDevToolsSpecification, domain, event);
+                    createEvent(chromeDevToolsEventsPath, chromeDevToolsEventProcessorsPath, chromeDevToolsSpecification, domain, event, creatorEventsImportBuilder, creatorEventNameFieldsBuilder, creatorCreateMethodsBuilder);
                     log.info("Event {} has been successfully created!", event.getName());
                 }
             }
         }
+
+        Path chromeInstanceEventProcessorCreatorPath = chromeDevToolsEventProcessorsPath.resolve("ChromeInstanceEventProcessorCreator.java");
+        String chromeInstanceEventProcessorCreatorClassFileContent = """
+                package ru.hzerr.cdp.processor.impl;
+                
+                import ru.hzerr.cdp.processor.EventProcessingExceptionHandler;
+                import ru.hzerr.cdp.processor.EventProcessingHandler;
+                
+                public class ChromeInstanceEventProcessorCreator {
+                
+                %s
+                
+                    private ChromeInstanceEventProcessorCreator() {
+                    }
+                
+                %s
+                }
+                """.formatted(
+                creatorEventNameFieldsBuilder.toString().replaceAll("\\s+$", ""),
+                creatorCreateMethodsBuilder.toString().replaceAll("\\s+$", "")
+        );
+
+        PathUtils.writeString(chromeInstanceEventProcessorCreatorPath, chromeInstanceEventProcessorCreatorClassFileContent, StandardCharsets.UTF_8);
+        log.info("ChromeInstanceEventProcessorCreator has been successfully created!");
     }
 
-    private void createEvent(Path chromeDevToolsEventsPath, ChromeDevToolsSpecification chromeDevToolsSpecification, Domain domain, Event event) throws IOException {
+    private void createEvent(Path chromeDevToolsEventsPath, Path chromeDevToolsEventProcessorPath, ChromeDevToolsSpecification chromeDevToolsSpecification, Domain domain, Event event, StringBuilder creatorEventsImportBuilder, StringBuilder creatorEventNameFieldsBuilder, StringBuilder creatorCreateMethodsBuilder) throws IOException {
         Path domainPath = chromeDevToolsEventsPath.resolve(getShirtPackageByDomainName(domain.getDomain()));
         String eventClassName = "%sEvent".formatted(StringUtils.capitalize(event.getName()));
         Path eventPath = domainPath.resolve("%s.java".formatted(eventClassName));
@@ -892,6 +925,62 @@ public class ChromeInstanceDevToolsSpecificationClassCreator implements IChromeI
         ).replace("\n\n\n", "\n\n");
 
         PathUtils.writeString(eventPath, classFileContent, StandardCharsets.UTF_8);
+
+        // Создание процессора
+        String eventProcessorClassName = "%sEventProcessor".formatted(StringUtils.capitalize(event.getName()).startsWith(domain.getDomain()) ? StringUtils.capitalize(event.getName()) : domain.getDomain() + StringUtils.capitalize(event.getName()));
+        Path eventProcessorPath = chromeDevToolsEventProcessorPath.resolve("%s.java".formatted(eventProcessorClassName));
+        String fullEventName = domain.getDomain() + "." + event.getName();
+
+        String eventProcessorClassFileContent = """
+                package ru.hzerr.cdp.processor.impl;
+                
+                import ru.hzerr.cdp.event.%s.%s;
+                import ru.hzerr.cdp.processor.AbstractChromeInstanceEventProcessor;
+                
+                public abstract class %s extends AbstractChromeInstanceEventProcessor<%s> {
+                
+                    public %s() {
+                        super("%s", %s.class);
+                    }
+                
+                    @Override
+                    protected abstract void onEvent(%s event) throws Exception;
+                
+                    @Override
+                    protected abstract void onEventProcessingException(Exception e);
+                
+                    @Override
+                    public String getEventName() { return "%s"; }
+                }
+                """.formatted(getShirtPackageByDomainName(domain.getDomain()), eventClassName, eventProcessorClassName, eventClassName, eventProcessorClassName, fullEventName, eventClassName, eventClassName, fullEventName);
+
+        PathUtils.writeString(eventProcessorPath, eventProcessorClassFileContent, StandardCharsets.UTF_8);
+
+        // Добавление метода создания процессора и информации в ChromeInstanceEventProcessorCreator
+        creatorEventsImportBuilder.append("import ru.hzerr.cdp.event.").append(getShirtPackageByDomainName(domain.getDomain())).append(".").append(eventClassName).append(";\n");
+        creatorEventNameFieldsBuilder.append("\tpublic static final String ");
+        String eventTmpName = StringUtils.capitalize(event.getName()).startsWith(domain.getDomain()) ? StringUtils.capitalize(event.getName()) : domain.getDomain() + StringUtils.capitalize(event.getName());
+        for (String partName: StringUtils.splitByCharacterTypeCamelCase(eventTmpName)) {
+            creatorEventNameFieldsBuilder.append(partName.toUpperCase()).append("_");
+        }
+        creatorEventNameFieldsBuilder.append("EVENT_NAME = \"").append(fullEventName).append("\";\n");
+        creatorCreateMethodsBuilder.append("""
+                    public static %s create%s(EventProcessingHandler<ru.hzerr.cdp.event.%s.%s> eventHandler, EventProcessingExceptionHandler exceptionHandler) {
+                        return new %s() {
+                
+                            @Override
+                            protected void onEvent(ru.hzerr.cdp.event.%s.%s event) throws Exception {
+                                eventHandler.onEvent(event);
+                            }
+                
+                            @Override
+                            protected void onEventProcessingException(Exception e) {
+                                exceptionHandler.onEventProcessingException(e);
+                            }
+                        };
+                    }
+                
+                """.formatted(eventProcessorClassName, eventProcessorClassName, getShirtPackageByDomainName(domain.getDomain()), eventClassName, eventProcessorClassName, getShirtPackageByDomainName(domain.getDomain()), eventClassName));
     }
 
     private void createTypes0(Path chromeDevToolsTypesPath, ChromeDevToolsSpecification chromeDevToolsSpecification) throws IOException {
