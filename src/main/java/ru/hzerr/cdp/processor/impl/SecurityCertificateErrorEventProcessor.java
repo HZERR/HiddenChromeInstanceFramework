@@ -3,6 +3,7 @@ package ru.hzerr.cdp.processor.impl;
 import ru.hzerr.cdp.event.security.CertificateErrorEvent;
 import ru.hzerr.cdp.processor.AbstractChromeInstanceEventProcessor;
 
+@Deprecated
 public abstract class SecurityCertificateErrorEventProcessor extends AbstractChromeInstanceEventProcessor<CertificateErrorEvent> {
 
     public SecurityCertificateErrorEventProcessor() {

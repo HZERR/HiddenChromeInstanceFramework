@@ -3,6 +3,7 @@ package ru.hzerr.cdp.processor.impl;
 import ru.hzerr.cdp.event.debugger.BreakpointResolvedEvent;
 import ru.hzerr.cdp.processor.AbstractChromeInstanceEventProcessor;
 
+@Deprecated
 public abstract class DebuggerBreakpointResolvedEventProcessor extends AbstractChromeInstanceEventProcessor<BreakpointResolvedEvent> {
 
     public DebuggerBreakpointResolvedEventProcessor() {

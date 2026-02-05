@@ -36,9 +36,4 @@ public class FrameDetachedEvent {
 	public void setReason(String reason) {
 		this.reason = reason;
 	}
-
-	@Override
-	public String toString() {
-		return "FrameDetachedEvent [frameId=" + frameId + ", reason=" + reason + "]";
-	}
 }

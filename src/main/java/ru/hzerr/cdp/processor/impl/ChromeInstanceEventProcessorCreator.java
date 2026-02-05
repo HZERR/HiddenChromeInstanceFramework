@@ -73,6 +73,7 @@ public class ChromeInstanceEventProcessorCreator {
 	public static final String NETWORK_EVENT_SOURCE_MESSAGE_RECEIVED_EVENT_NAME = "Network.eventSourceMessageReceived";
 	public static final String NETWORK_LOADING_FAILED_EVENT_NAME = "Network.loadingFailed";
 	public static final String NETWORK_LOADING_FINISHED_EVENT_NAME = "Network.loadingFinished";
+	@Deprecated
 	public static final String NETWORK_REQUEST_INTERCEPTED_EVENT_NAME = "Network.requestIntercepted";
 	public static final String NETWORK_REQUEST_SERVED_FROM_CACHE_EVENT_NAME = "Network.requestServedFromCache";
 	public static final String NETWORK_REQUEST_WILL_BE_SENT_EVENT_NAME = "Network.requestWillBeSent";
@@ -118,6 +119,7 @@ public class ChromeInstanceEventProcessorCreator {
 	public static final String PAGE_DOM_CONTENT_EVENT_FIRED_EVENT_NAME = "Page.domContentEventFired";
 	public static final String PAGE_FILE_CHOOSER_OPENED_EVENT_NAME = "Page.fileChooserOpened";
 	public static final String PAGE_FRAME_ATTACHED_EVENT_NAME = "Page.frameAttached";
+	@Deprecated
 	public static final String PAGE_FRAME_CLEARED_SCHEDULED_NAVIGATION_EVENT_NAME = "Page.frameClearedScheduledNavigation";
 	public static final String PAGE_FRAME_DETACHED_EVENT_NAME = "Page.frameDetached";
 	public static final String PAGE_FRAME_SUBTREE_WILL_BE_DETACHED_EVENT_NAME = "Page.frameSubtreeWillBeDetached";
@@ -126,10 +128,13 @@ public class ChromeInstanceEventProcessorCreator {
 	public static final String PAGE_FRAME_RESIZED_EVENT_NAME = "Page.frameResized";
 	public static final String PAGE_FRAME_STARTED_NAVIGATING_EVENT_NAME = "Page.frameStartedNavigating";
 	public static final String PAGE_FRAME_REQUESTED_NAVIGATION_EVENT_NAME = "Page.frameRequestedNavigation";
+	@Deprecated
 	public static final String PAGE_FRAME_SCHEDULED_NAVIGATION_EVENT_NAME = "Page.frameScheduledNavigation";
 	public static final String PAGE_FRAME_STARTED_LOADING_EVENT_NAME = "Page.frameStartedLoading";
 	public static final String PAGE_FRAME_STOPPED_LOADING_EVENT_NAME = "Page.frameStoppedLoading";
+	@Deprecated
 	public static final String PAGE_DOWNLOAD_WILL_BEGIN_EVENT_NAME = "Page.downloadWillBegin";
+	@Deprecated
 	public static final String PAGE_DOWNLOAD_PROGRESS_EVENT_NAME = "Page.downloadProgress";
 	public static final String PAGE_INTERSTITIAL_HIDDEN_EVENT_NAME = "Page.interstitialHidden";
 	public static final String PAGE_INTERSTITIAL_SHOWN_EVENT_NAME = "Page.interstitialShown";
@@ -151,8 +156,10 @@ public class ChromeInstanceEventProcessorCreator {
 	public static final String PRELOAD_PREFETCH_STATUS_UPDATED_EVENT_NAME = "Preload.prefetchStatusUpdated";
 	public static final String PRELOAD_PRERENDER_STATUS_UPDATED_EVENT_NAME = "Preload.prerenderStatusUpdated";
 	public static final String PRELOADING_ATTEMPT_SOURCES_UPDATED_EVENT_NAME = "Preload.preloadingAttemptSourcesUpdated";
+	@Deprecated
 	public static final String SECURITY_CERTIFICATE_ERROR_EVENT_NAME = "Security.certificateError";
 	public static final String SECURITY_VISIBLE_SECURITY_STATE_CHANGED_EVENT_NAME = "Security.visibleSecurityStateChanged";
+	@Deprecated
 	public static final String SECURITY_STATE_CHANGED_EVENT_NAME = "Security.securityStateChanged";
 	public static final String SERVICE_WORKER_WORKER_ERROR_REPORTED_EVENT_NAME = "ServiceWorker.workerErrorReported";
 	public static final String SERVICE_WORKER_WORKER_REGISTRATION_UPDATED_EVENT_NAME = "ServiceWorker.workerRegistrationUpdated";
@@ -201,6 +208,7 @@ public class ChromeInstanceEventProcessorCreator {
 	public static final String WEB_AUTHN_CREDENTIAL_UPDATED_EVENT_NAME = "WebAuthn.credentialUpdated";
 	public static final String WEB_AUTHN_CREDENTIAL_ASSERTED_EVENT_NAME = "WebAuthn.credentialAsserted";
 	public static final String CONSOLE_MESSAGE_ADDED_EVENT_NAME = "Console.messageAdded";
+	@Deprecated
 	public static final String DEBUGGER_BREAKPOINT_RESOLVED_EVENT_NAME = "Debugger.breakpointResolved";
 	public static final String DEBUGGER_PAUSED_EVENT_NAME = "Debugger.paused";
 	public static final String DEBUGGER_RESUMED_EVENT_NAME = "Debugger.resumed";
@@ -1246,7 +1254,8 @@ public class ChromeInstanceEventProcessorCreator {
         };
     }
 
-    public static NetworkRequestInterceptedEventProcessor createNetworkRequestInterceptedEventProcessor(EventProcessingHandler<ru.hzerr.cdp.event.network.RequestInterceptedEvent> eventHandler, EventProcessingExceptionHandler exceptionHandler) {
+    @Deprecated
+	public static NetworkRequestInterceptedEventProcessor createNetworkRequestInterceptedEventProcessor(EventProcessingHandler<ru.hzerr.cdp.event.network.RequestInterceptedEvent> eventHandler, EventProcessingExceptionHandler exceptionHandler) {
         return new NetworkRequestInterceptedEventProcessor() {
 
             @Override
@@ -1921,7 +1930,8 @@ public class ChromeInstanceEventProcessorCreator {
         };
     }
 
-    public static PageFrameClearedScheduledNavigationEventProcessor createPageFrameClearedScheduledNavigationEventProcessor(EventProcessingHandler<ru.hzerr.cdp.event.page.FrameClearedScheduledNavigationEvent> eventHandler, EventProcessingExceptionHandler exceptionHandler) {
+    @Deprecated
+	public static PageFrameClearedScheduledNavigationEventProcessor createPageFrameClearedScheduledNavigationEventProcessor(EventProcessingHandler<ru.hzerr.cdp.event.page.FrameClearedScheduledNavigationEvent> eventHandler, EventProcessingExceptionHandler exceptionHandler) {
         return new PageFrameClearedScheduledNavigationEventProcessor() {
 
             @Override
@@ -2041,7 +2051,8 @@ public class ChromeInstanceEventProcessorCreator {
         };
     }
 
-    public static PageFrameScheduledNavigationEventProcessor createPageFrameScheduledNavigationEventProcessor(EventProcessingHandler<ru.hzerr.cdp.event.page.FrameScheduledNavigationEvent> eventHandler, EventProcessingExceptionHandler exceptionHandler) {
+    @Deprecated
+	public static PageFrameScheduledNavigationEventProcessor createPageFrameScheduledNavigationEventProcessor(EventProcessingHandler<ru.hzerr.cdp.event.page.FrameScheduledNavigationEvent> eventHandler, EventProcessingExceptionHandler exceptionHandler) {
         return new PageFrameScheduledNavigationEventProcessor() {
 
             @Override
@@ -2086,7 +2097,8 @@ public class ChromeInstanceEventProcessorCreator {
         };
     }
 
-    public static PageDownloadWillBeginEventProcessor createPageDownloadWillBeginEventProcessor(EventProcessingHandler<ru.hzerr.cdp.event.page.DownloadWillBeginEvent> eventHandler, EventProcessingExceptionHandler exceptionHandler) {
+    @Deprecated
+	public static PageDownloadWillBeginEventProcessor createPageDownloadWillBeginEventProcessor(EventProcessingHandler<ru.hzerr.cdp.event.page.DownloadWillBeginEvent> eventHandler, EventProcessingExceptionHandler exceptionHandler) {
         return new PageDownloadWillBeginEventProcessor() {
 
             @Override
@@ -2101,7 +2113,8 @@ public class ChromeInstanceEventProcessorCreator {
         };
     }
 
-    public static PageDownloadProgressEventProcessor createPageDownloadProgressEventProcessor(EventProcessingHandler<ru.hzerr.cdp.event.page.DownloadProgressEvent> eventHandler, EventProcessingExceptionHandler exceptionHandler) {
+    @Deprecated
+	public static PageDownloadProgressEventProcessor createPageDownloadProgressEventProcessor(EventProcessingHandler<ru.hzerr.cdp.event.page.DownloadProgressEvent> eventHandler, EventProcessingExceptionHandler exceptionHandler) {
         return new PageDownloadProgressEventProcessor() {
 
             @Override
@@ -2416,7 +2429,8 @@ public class ChromeInstanceEventProcessorCreator {
         };
     }
 
-    public static SecurityCertificateErrorEventProcessor createSecurityCertificateErrorEventProcessor(EventProcessingHandler<ru.hzerr.cdp.event.security.CertificateErrorEvent> eventHandler, EventProcessingExceptionHandler exceptionHandler) {
+    @Deprecated
+	public static SecurityCertificateErrorEventProcessor createSecurityCertificateErrorEventProcessor(EventProcessingHandler<ru.hzerr.cdp.event.security.CertificateErrorEvent> eventHandler, EventProcessingExceptionHandler exceptionHandler) {
         return new SecurityCertificateErrorEventProcessor() {
 
             @Override
@@ -2446,7 +2460,8 @@ public class ChromeInstanceEventProcessorCreator {
         };
     }
 
-    public static SecurityStateChangedEventProcessor createSecurityStateChangedEventProcessor(EventProcessingHandler<ru.hzerr.cdp.event.security.SecurityStateChangedEvent> eventHandler, EventProcessingExceptionHandler exceptionHandler) {
+    @Deprecated
+	public static SecurityStateChangedEventProcessor createSecurityStateChangedEventProcessor(EventProcessingHandler<ru.hzerr.cdp.event.security.SecurityStateChangedEvent> eventHandler, EventProcessingExceptionHandler exceptionHandler) {
         return new SecurityStateChangedEventProcessor() {
 
             @Override
@@ -3166,7 +3181,8 @@ public class ChromeInstanceEventProcessorCreator {
         };
     }
 
-    public static DebuggerBreakpointResolvedEventProcessor createDebuggerBreakpointResolvedEventProcessor(EventProcessingHandler<ru.hzerr.cdp.event.debugger.BreakpointResolvedEvent> eventHandler, EventProcessingExceptionHandler exceptionHandler) {
+    @Deprecated
+	public static DebuggerBreakpointResolvedEventProcessor createDebuggerBreakpointResolvedEventProcessor(EventProcessingHandler<ru.hzerr.cdp.event.debugger.BreakpointResolvedEvent> eventHandler, EventProcessingExceptionHandler exceptionHandler) {
         return new DebuggerBreakpointResolvedEventProcessor() {
 
             @Override

@@ -3,6 +3,7 @@ package ru.hzerr.cdp.processor.impl;
 import ru.hzerr.cdp.event.security.SecurityStateChangedEvent;
 import ru.hzerr.cdp.processor.AbstractChromeInstanceEventProcessor;
 
+@Deprecated
 public abstract class SecurityStateChangedEventProcessor extends AbstractChromeInstanceEventProcessor<SecurityStateChangedEvent> {
 
     public SecurityStateChangedEventProcessor() {

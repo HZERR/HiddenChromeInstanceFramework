@@ -937,7 +937,7 @@ public class ChromeInstanceDevToolsSpecificationClassCreator implements IChromeI
                 import ru.hzerr.cdp.event.%s.%s;
                 import ru.hzerr.cdp.processor.AbstractChromeInstanceEventProcessor;
                 
-                public abstract class %s extends AbstractChromeInstanceEventProcessor<%s> {
+                %spublic abstract class %s extends AbstractChromeInstanceEventProcessor<%s> {
                 
                     public %s() {
                         super("%s", %s.class);
@@ -952,12 +952,13 @@ public class ChromeInstanceDevToolsSpecificationClassCreator implements IChromeI
                     @Override
                     public String getEventName() { return "%s"; }
                 }
-                """.formatted(getShirtPackageByDomainName(domain.getDomain()), eventClassName, eventProcessorClassName, eventClassName, eventProcessorClassName, fullEventName, eventClassName, eventClassName, fullEventName);
+                """.formatted(getShirtPackageByDomainName(domain.getDomain()), eventClassName, event.isDeprecated() ? "@Deprecated\n" : "", eventProcessorClassName, eventClassName, eventProcessorClassName, fullEventName, eventClassName, eventClassName, fullEventName);
 
         PathUtils.writeString(eventProcessorPath, eventProcessorClassFileContent, StandardCharsets.UTF_8);
 
         // Добавление метода создания процессора и информации в ChromeInstanceEventProcessorCreator
         creatorEventsImportBuilder.append("import ru.hzerr.cdp.event.").append(getShirtPackageByDomainName(domain.getDomain())).append(".").append(eventClassName).append(";\n");
+        if (event.isDeprecated()) creatorEventNameFieldsBuilder.append("\t@Deprecated\n");
         creatorEventNameFieldsBuilder.append("\tpublic static final String ");
         String eventTmpName = StringUtils.capitalize(event.getName()).startsWith(domain.getDomain()) ? StringUtils.capitalize(event.getName()) : domain.getDomain() + StringUtils.capitalize(event.getName());
         for (String partName: StringUtils.splitByCharacterTypeCamelCase(eventTmpName)) {
@@ -965,7 +966,7 @@ public class ChromeInstanceDevToolsSpecificationClassCreator implements IChromeI
         }
         creatorEventNameFieldsBuilder.append("EVENT_NAME = \"").append(fullEventName).append("\";\n");
         creatorCreateMethodsBuilder.append("""
-                    public static %s create%s(EventProcessingHandler<ru.hzerr.cdp.event.%s.%s> eventHandler, EventProcessingExceptionHandler exceptionHandler) {
+                    %spublic static %s create%s(EventProcessingHandler<ru.hzerr.cdp.event.%s.%s> eventHandler, EventProcessingExceptionHandler exceptionHandler) {
                         return new %s() {
                 
                             @Override
@@ -979,8 +980,8 @@ public class ChromeInstanceDevToolsSpecificationClassCreator implements IChromeI
                             }
                         };
                     }
-                
-                """.formatted(eventProcessorClassName, eventProcessorClassName, getShirtPackageByDomainName(domain.getDomain()), eventClassName, eventProcessorClassName, getShirtPackageByDomainName(domain.getDomain()), eventClassName));
+
+                """.formatted(event.isDeprecated() ? "@Deprecated\n\t" : "", eventProcessorClassName, eventProcessorClassName, getShirtPackageByDomainName(domain.getDomain()), eventClassName, eventProcessorClassName, getShirtPackageByDomainName(domain.getDomain()), eventClassName));
     }
 
     private void createTypes0(Path chromeDevToolsTypesPath, ChromeDevToolsSpecification chromeDevToolsSpecification) throws IOException {

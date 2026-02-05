@@ -3,6 +3,7 @@ package ru.hzerr.cdp.processor.impl;
 import ru.hzerr.cdp.event.network.RequestInterceptedEvent;
 import ru.hzerr.cdp.processor.AbstractChromeInstanceEventProcessor;
 
+@Deprecated
 public abstract class NetworkRequestInterceptedEventProcessor extends AbstractChromeInstanceEventProcessor<RequestInterceptedEvent> {
 
     public NetworkRequestInterceptedEventProcessor() {

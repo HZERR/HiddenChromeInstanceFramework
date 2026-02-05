@@ -3,6 +3,7 @@ package ru.hzerr.cdp.processor.impl;
 import ru.hzerr.cdp.event.page.DownloadWillBeginEvent;
 import ru.hzerr.cdp.processor.AbstractChromeInstanceEventProcessor;
 
+@Deprecated
 public abstract class PageDownloadWillBeginEventProcessor extends AbstractChromeInstanceEventProcessor<DownloadWillBeginEvent> {
 
     public PageDownloadWillBeginEventProcessor() {

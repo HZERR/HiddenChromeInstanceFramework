@@ -3,6 +3,7 @@ package ru.hzerr.cdp.processor.impl;
 import ru.hzerr.cdp.event.page.DownloadProgressEvent;
 import ru.hzerr.cdp.processor.AbstractChromeInstanceEventProcessor;
 
+@Deprecated
 public abstract class PageDownloadProgressEventProcessor extends AbstractChromeInstanceEventProcessor<DownloadProgressEvent> {
 
     public PageDownloadProgressEventProcessor() {

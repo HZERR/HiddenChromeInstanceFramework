@@ -3,6 +3,7 @@ package ru.hzerr.cdp.processor.impl;
 import ru.hzerr.cdp.event.page.FrameClearedScheduledNavigationEvent;
 import ru.hzerr.cdp.processor.AbstractChromeInstanceEventProcessor;
 
+@Deprecated
 public abstract class PageFrameClearedScheduledNavigationEventProcessor extends AbstractChromeInstanceEventProcessor<FrameClearedScheduledNavigationEvent> {
 
     public PageFrameClearedScheduledNavigationEventProcessor() {
