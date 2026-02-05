@@ -1,0 +1,48 @@
+package ru.hzerr.cdp.event.network;
+
+import ru.hzerr.annotation.Description;
+import ru.hzerr.annotation.Event;
+import ru.hzerr.annotation.Required;
+import ru.hzerr.annotation.TypeDescription;
+import ru.hzerr.cdp.type.network.WebSocketFrame;
+
+@Description("Fired when WebSocket message is sent.")
+@Event("webSocketFrameSent")
+public class WebSocketFrameSentEvent {
+
+	@Required
+	@Description("Request identifier.")
+	@TypeDescription("Unique network request identifier. Note that this does not identify individual HTTP requests that are part of a network request.")
+	private String requestId;
+
+	@Required
+	@Description("Timestamp.")
+	@TypeDescription("Monotonically increasing time in seconds since an arbitrary point in the past.")
+	private Number timestamp;
+
+	@Required
+	@Description("WebSocket response data.")
+	private WebSocketFrame response;
+
+    public WebSocketFrameSentEvent() {
+    }
+
+	public String getRequestId() {
+		return this.requestId;
+	}
+	public void setRequestId(String requestId) {
+		this.requestId = requestId;
+	}
+	public Number getTimestamp() {
+		return this.timestamp;
+	}
+	public void setTimestamp(Number timestamp) {
+		this.timestamp = timestamp;
+	}
+	public WebSocketFrame getResponse() {
+		return this.response;
+	}
+	public void setResponse(WebSocketFrame response) {
+		this.response = response;
+	}
+}

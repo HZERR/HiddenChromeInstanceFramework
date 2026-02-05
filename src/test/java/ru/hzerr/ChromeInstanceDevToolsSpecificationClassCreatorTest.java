@@ -28,4 +28,12 @@ public class ChromeInstanceDevToolsSpecificationClassCreatorTest {
 
         Assertions.assertDoesNotThrow(creator::createTypes);
     }
+
+    @Test
+    public void createChromeDevToolsSpecificationEventsTest() {
+        ChromeInstanceDevToolsSpecificationClassCreator creator = new ChromeInstanceDevToolsSpecificationClassCreator();
+        creator.setChromeDevToolsSpecificationPath(SPECIFICATION_PATH);
+
+        Assertions.assertDoesNotThrow(creator::createEvents);
+    }
 }

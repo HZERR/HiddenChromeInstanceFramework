@@ -6,7 +6,7 @@ import ru.hzerr.utils.JsonToStringStyle;
 
 import java.util.List;
 
-@JsonIgnoreProperties({"commands", "events"})
+@JsonIgnoreProperties({"commands"})
 public class Domain {
 
     private String domain;
@@ -15,6 +15,7 @@ public class Domain {
     private String description;
     private List<String> dependencies;
     private List<Class> types;
+    private List<Event> events;
 
     public String getDomain() { return domain; }
     public void setDomain(String domain) { this.domain = domain; }
@@ -35,6 +36,8 @@ public class Domain {
 
         throw new IllegalArgumentException("No such type: " + typeName);
     }
+    public List<Event> getEvents() { return events; }
+    public void setEvents(List<Event> events) { this.events = events; }
 
     @Override
     public String toString() {
