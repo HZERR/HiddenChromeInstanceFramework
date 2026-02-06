@@ -21,7 +21,7 @@ import java.nio.file.Paths;
 
 public class ChromeInstanceDevToolsSpecificationClassCreator implements IChromeInstanceDevToolsSpecificationClassCreator {
 
-    private static final String REPOSITORY_NAME = "HiddenOfficalChromeAutomation";
+    private static final String REPOSITORY_NAME = "HiddenChromeInstanceFramework";
     private static final String SUPPORTED_MAJOR_VERSION = "1";
     private static final String SUPPORTED_MINOR_VERSION = "3";
     private static final Logger log = LogManager.getLogger(ChromeInstanceDevToolsSpecificationClassCreator.class);
