@@ -12,4 +12,4 @@
 ## ✅ Pixelscan
 ![Результат Pixelscan](demo_pixelscan.png)
 
-### Chrome: https://github.com/HZERR/CHROME_BUILD
+## [Официальные сборки Chrome →](https://github.com/HZERR/ChromeOfficialBuilds)
