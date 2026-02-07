@@ -5,7 +5,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.WebSocket;
 import ru.hzerr.cdp.processor.IChromeInstanceEventProcessor;
-import ru.hzerr.ex.*;
+import ru.hzerr.exceptions.*;
 import ru.hzerr.model.base.BaseChromeInstanceRequest;
 import ru.hzerr.model.base.BaseChromeInstanceResponse;
 import ru.hzerr.model.base.BaseChromeEvent;

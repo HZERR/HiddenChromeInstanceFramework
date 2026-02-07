@@ -8,6 +8,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import ru.hzerr.bootstrapper.HiddenChromeInstanceEnvironmentBootstrapper;
+import ru.hzerr.bootstrapper.HiddenChromeInstanceEnvironmentBootstrapperOptions.HiddenChromeInstanceEnvironmentBootstrapperOptionsBuilder;
 import ru.hzerr.cdp.processor.impl.ChromeInstanceEventProcessorCreator;
 import ru.hzerr.chrome.HiddenChromeInstance;
 import ru.hzerr.model.ExecutionContextCollection;
@@ -26,6 +28,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -51,7 +54,9 @@ public class HiddenOfficialChromeTest {
     public void initialize() {
         Assertions.assertDoesNotThrow(() -> this.userDataLocation = Files.createTempDirectory("hidden-chrome"), "❌ Failed to create chrome profile directory");
         HiddenChromeV144InstanceParameters parameters = Assertions.assertDoesNotThrow(() -> HiddenChromeV144InstanceParametersBuilder.create()
-                .withChromeInstanceLocation(CHROME_INSTANCE_LOCATION)
+                .withChromeInstanceEnvironment(HiddenChromeInstanceEnvironmentBootstrapper.create(
+                        HiddenChromeInstanceEnvironmentBootstrapperOptionsBuilder.create().withChromeInstanceLocation(Paths.get(CHROME_INSTANCE_LOCATION)).build()
+                ).bootstrap())
                 .withRemoteDebuggingPort(REMOTE_DEBUGGING_PORT)
                 .withUserDataLocation(userDataLocation.toString())
                 .withNoFirstRun(true)

@@ -7,7 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import ru.hzerr.cdp.creator.model.*;
 import ru.hzerr.cdp.creator.model.Class;
-import ru.hzerr.ex.ChromeInstanceSpecificationCreationException;
+import ru.hzerr.exceptions.ChromeInstanceSpecificationCreationException;
 import ru.hzerr.utils.JsonUtils;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;

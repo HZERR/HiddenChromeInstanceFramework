@@ -1,4 +1,4 @@
-package ru.hzerr.ex;
+package ru.hzerr.exceptions;
 
 public class ChromeShutdownException extends ChromeInstanceException {
 

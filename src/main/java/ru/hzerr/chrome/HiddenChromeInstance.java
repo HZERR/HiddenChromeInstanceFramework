@@ -1,6 +1,6 @@
 package ru.hzerr.chrome;
 
-import ru.hzerr.ex.ChromeInstanceException;
+import ru.hzerr.exceptions.ChromeInstanceException;
 import ru.hzerr.model.ChromeDevToolsMetaData;
 import ru.hzerr.parameters.HiddenChromeV144InstanceParameters;
 import ru.hzerr.utils.JsonUtils;

@@ -1,8 +1,8 @@
 package ru.hzerr.chrome;
 
-import ru.hzerr.ex.ChromeConnectionException;
-import ru.hzerr.ex.ChromeLaunchException;
-import ru.hzerr.ex.ChromeShutdownException;
+import ru.hzerr.exceptions.ChromeConnectionException;
+import ru.hzerr.exceptions.ChromeLaunchException;
+import ru.hzerr.exceptions.ChromeShutdownException;
 
 public interface IChromeDevToolsLifecycle extends AutoCloseable {
 

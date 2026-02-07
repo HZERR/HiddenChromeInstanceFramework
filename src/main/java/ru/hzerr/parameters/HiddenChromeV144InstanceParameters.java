@@ -1,6 +1,8 @@
 package ru.hzerr.parameters;
 
-import ru.hzerr.ex.ChromeMissingParametersException;
+import org.apache.commons.lang3.ObjectUtils;
+import ru.hzerr.bootstrapper.IHiddenChromeInstanceEnvironment;
+import ru.hzerr.exceptions.ChromeMissingParametersException;
 import ru.hzerr.utils.StringUtils;
 
 import java.util.ArrayList;
@@ -12,8 +14,8 @@ public class HiddenChromeV144InstanceParameters extends ChromeInstanceParameters
     private String remoteDebuggingPort;
     private boolean noFirstRun;
 
-    private HiddenChromeV144InstanceParameters(String chromeInstanceLocation) {
-        super(chromeInstanceLocation);
+    private HiddenChromeV144InstanceParameters(IHiddenChromeInstanceEnvironment chromeInstanceEnvironment) {
+        super(chromeInstanceEnvironment);
     }
 
     public String getUserDataLocation() {
@@ -57,7 +59,7 @@ public class HiddenChromeV144InstanceParameters extends ChromeInstanceParameters
 
     public static class HiddenChromeV144InstanceParametersBuilder implements IChromeInstanceParametersBuilder<HiddenChromeV144InstanceParameters> {
 
-        private String chromeInstanceLocation;
+        private IHiddenChromeInstanceEnvironment chromeInstanceEnvironment;
         private String userDataLocation;
         private String remoteDebuggingPort;
         private boolean noFirstRun;
@@ -65,8 +67,8 @@ public class HiddenChromeV144InstanceParameters extends ChromeInstanceParameters
         private HiddenChromeV144InstanceParametersBuilder() {
         }
 
-        public HiddenChromeV144InstanceParametersBuilder withChromeInstanceLocation(String chromeInstanceLocation) {
-            this.chromeInstanceLocation = chromeInstanceLocation;
+        public HiddenChromeV144InstanceParametersBuilder withChromeInstanceEnvironment(IHiddenChromeInstanceEnvironment chromeInstanceEnvironment) {
+            this.chromeInstanceEnvironment = chromeInstanceEnvironment;
             return this;
         }
 
@@ -87,11 +89,11 @@ public class HiddenChromeV144InstanceParameters extends ChromeInstanceParameters
 
         @Override
         public HiddenChromeV144InstanceParameters build() {
-            if (StringUtils.isEmpty(chromeInstanceLocation)) throw new ChromeMissingParametersException("Chrome parameter 'chromeInstanceLocation' isn't provided");
+            if (ObjectUtils.isEmpty(chromeInstanceEnvironment)) throw new ChromeMissingParametersException("Chrome parameter 'chromeInstanceEnvironment' isn't provided");
             if (StringUtils.isEmpty(remoteDebuggingPort)) throw new ChromeMissingParametersException("Chrome parameter 'remoteDebuggingPort' isn't provided");
             if (StringUtils.isEmpty(userDataLocation)) throw new ChromeMissingParametersException("Chrome parameter 'userDataLocation' isn't provided");
 
-            return new HiddenChromeV144InstanceParameters(chromeInstanceLocation)
+            return new HiddenChromeV144InstanceParameters(chromeInstanceEnvironment)
                     .withRemoteDebuggingPort(remoteDebuggingPort)
                     .withUserDataLocation(userDataLocation)
                     .withNoFirstRun(noFirstRun);
